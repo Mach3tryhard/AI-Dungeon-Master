@@ -21,7 +21,7 @@ DNDGameApp {
 
 #wizard-box {
     content-align: center middle;
-    height: 50%;
+    height: 40%;
     margin: 1;
     /* Use the secondary theme color for this specific box */
     border: solid $secondary; 
@@ -34,13 +34,6 @@ DNDGameApp {
     /* Built-in muted background and text colors */
     background: $panel;
     color: $text-muted;
-}
-
-#dice-box {
-    content-align: center middle;
-    margin: 1 1 0 1; 
-    padding: 1;
-    border: dashed $primary; /* Muted standard text color for border */
 }
 
 .die {
@@ -84,4 +77,17 @@ Footer {
 Footer > .footer--key {
     text-style: bold;
     color: $secondary;
+}
+
+.die {
+    width: 80vh;
+    height: 40vh;
+}
+
+#dice-box {
+    content-align: center middle;
+    /* margin: 1 1 0 1;  */
+    /* padding: 1; */
+    border: dashed $primary; /* Muted standard text color for border */
+    align: center middle;
 }
