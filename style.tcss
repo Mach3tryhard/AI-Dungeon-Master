@@ -1,0 +1,87 @@
+DNDGameApp {
+    layers: base footer;
+    /* Textual automatically applies $background and $text to the root App */
+}
+
+/* --- MAIN LAYOUT --- */
+#dnd-main {
+    layout: grid;
+    grid-size: 2 1;
+    grid-columns: 30% 70%;
+}
+
+/* --- LEFT COLUMN --- */
+#left-column {
+    layout: vertical;
+    /* Use the theme's primary color for the border */
+    border-right: heavy $primary;
+    /* Use the built-in surface background color */
+    background: $surface; 
+}
+
+#wizard-box {
+    content-align: center middle;
+    height: 50%;
+    margin: 1;
+    /* Use the secondary theme color for this specific box */
+    border: solid $secondary; 
+    padding: 1;
+}
+
+#stats-separator {
+    height: 1;
+    content-align: center middle;
+    /* Built-in muted background and text colors */
+    background: $panel;
+    color: $text-muted;
+}
+
+#dice-box {
+    content-align: center middle;
+    margin: 1 1 0 1; 
+    padding: 1;
+    border: dashed $primary; /* Muted standard text color for border */
+}
+
+.die {
+    margin: 1;
+}
+
+/* --- RIGHT COLUMN --- */
+#right-column {
+    layout: vertical;
+    border-right: solid $primary;
+}
+
+#story-panel {
+    padding: 1 2;
+    /* Match the left column border */
+    border: solid $primary;
+    margin: 1 1 0 1;
+    background: $surface;
+}
+
+#weapon-info-panel {
+    height: 25%;
+    border: solid $primary;
+    margin: 1;
+    padding: 1 2;
+    background: $panel; /* Slightly different background from surface */
+}
+
+#dm-input {
+    margin: 0 1 1 1;
+    border: heavy $secondary;
+}
+
+/* --- FOOTER / KEYBAR --- */
+Footer {
+    dock: bottom;
+    /* Textual's Footer automatically handles its own theming, 
+       but you can force it to use specific theme variables if you want. */
+}
+
+Footer > .footer--key {
+    text-style: bold;
+    color: $secondary;
+}
