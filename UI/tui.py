@@ -3,6 +3,9 @@ from textual.containers import Container, Grid, ScrollableContainer
 from textual.widgets import Footer, Static, Input
 from textual.reactive import reactive
 import random
+from textual.widgets import Header, Footer, Static
+
+from sheet import CharacterSheetScreen
 
 ASCII_WIZARD = """
           /\ 
@@ -121,9 +124,12 @@ class DNDGameApp(App):
 
     BINDINGS = [
         ("r", "roll_test", "Test Roll"), 
+        ("c", "show_sheet", "Open Character Sheet"),
     ]
 
     def compose(self) -> ComposeResult:
+        yield Header(show_clock=True)
+        
         with Grid(id="dnd-main"):
             with Container(id="left-column"):
                 yield Static("DUNGEON MASTER", id="dm-title")  
@@ -164,6 +170,9 @@ class DNDGameApp(App):
 
     def action_roll_test(self) -> None:
         self.roll_dice(random.choice(dice), [random.randint(0, 20), random.randint(0, 20), random.randint(0, 20), random.randint(0, 20)])
+    def action_show_sheet(self) -> None:
+        if not isinstance(self.screen, CharacterSheetScreen):
+            self.push_screen(CharacterSheetScreen())
 
 
 if __name__ == "__main__":
