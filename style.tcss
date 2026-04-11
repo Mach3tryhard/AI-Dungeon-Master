@@ -1,9 +1,8 @@
+/* --- MAIN APP --- */
 DNDGameApp {
     layers: base footer;
-    /* Textual automatically applies $background and $text to the root App */
 }
 
-/* --- MAIN LAYOUT --- */
 #dnd-main {
     layout: grid;
     grid-size: 2 1;
@@ -13,17 +12,24 @@ DNDGameApp {
 /* --- LEFT COLUMN --- */
 #left-column {
     layout: vertical;
-    /* Use the theme's primary color for the border */
     border-right: heavy $primary;
-    /* Use the built-in surface background color */
     background: $surface; 
+}
+
+#dm-title {
+    width: 100%;
+    content-align: center middle;
+    color: $secondary;
+    text-style: bold;
+    padding: 1;
+    background: $panel;
+    border-bottom: solid $primary;
 }
 
 #wizard-box {
     content-align: center middle;
-    height: 50%;
+    height: 35%; /* Shrunk slightly to make room for the title */
     margin: 1;
-    /* Use the secondary theme color for this specific box */
     border: solid $secondary; 
     padding: 1;
 }
@@ -31,20 +37,40 @@ DNDGameApp {
 #stats-separator {
     height: 1;
     content-align: center middle;
-    /* Built-in muted background and text colors */
     background: $panel;
     color: $text-muted;
 }
 
-#dice-box {
-    content-align: center middle;
+/* --- DICE AREA --- */
+#dice-area {
     margin: 1 1 0 1; 
+    border: dashed $primary; 
+    height: 1fr; 
+    layout: vertical;
+}
+
+#total-display {
+    /* Make the total sum a solid, highly visible block */
+    width: 100%;
+    height: auto; 
     padding: 1;
-    border: dashed $primary; /* Muted standard text color for border */
+    content-align: center middle;
+    background: $secondary; /* Fills the background with your accent color */
+    color: $surface;        /* Makes the text dark so it contrasts perfectly */
+    text-style: bold;
+}
+
+#dice-box {
+    layout: grid;
+    grid-size: 3 3;
+    padding: 1;
+    height: 1fr;
 }
 
 .die {
-    margin: 1;
+    width: 100%;
+    height: 100%;
+    content-align: center middle;
 }
 
 /* --- RIGHT COLUMN --- */
@@ -55,7 +81,6 @@ DNDGameApp {
 
 #story-panel {
     padding: 1 2;
-    /* Match the left column border */
     border: solid $primary;
     margin: 1 1 0 1;
     background: $surface;
@@ -66,7 +91,7 @@ DNDGameApp {
     border: solid $primary;
     margin: 1;
     padding: 1 2;
-    background: $panel; /* Slightly different background from surface */
+    background: $panel; 
 }
 
 #dm-input {
@@ -74,11 +99,8 @@ DNDGameApp {
     border: heavy $secondary;
 }
 
-/* --- FOOTER / KEYBAR --- */
 Footer {
     dock: bottom;
-    /* Textual's Footer automatically handles its own theming, 
-       but you can force it to use specific theme variables if you want. */
 }
 
 Footer > .footer--key {
