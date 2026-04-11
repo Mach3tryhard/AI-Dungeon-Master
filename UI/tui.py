@@ -5,6 +5,7 @@ from textual.reactive import reactive
 import random
 from textual.widgets import Header, Footer, Static
 
+from map_screen import MapScreen
 from sheet import CharacterSheetScreen
 
 ASCII_WIZARD = """
@@ -125,6 +126,7 @@ class DNDGameApp(App):
     BINDINGS = [
         ("r", "roll_test", "Test Roll"), 
         ("c", "show_sheet", "Open Character Sheet"),
+        ("m", "show_map", "Open Map"),
     ]
 
     def compose(self) -> ComposeResult:
@@ -173,6 +175,9 @@ class DNDGameApp(App):
     def action_show_sheet(self) -> None:
         if not isinstance(self.screen, CharacterSheetScreen):
             self.push_screen(CharacterSheetScreen())
+    def action_show_map(self) -> None:
+        if not isinstance(self.screen, MapScreen):
+            self.push_screen(MapScreen())
 
 
 if __name__ == "__main__":
