@@ -26,6 +26,14 @@ DNDGameApp {
     border-bottom: solid $primary;
 }
 
+#chat-panel {
+    padding: 1 2;
+    border: solid $secondary;
+    margin: 1 1 0 1;
+    background: $surface;
+    height: auto;
+}
+
 #wizard-box {
     content-align: center middle;
     height: 35%; /* Shrunk slightly to make room for the title */
