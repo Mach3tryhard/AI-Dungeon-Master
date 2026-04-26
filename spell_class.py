@@ -45,7 +45,6 @@ class healingSpell(Spell):
     
     def cast(self, caster: 'Entity', target: 'Entity'):
         dice = Dice()
-        d20_roll = dice.roll('1d20')
 
         heal_amount = dice.roll(self.dice_roll)
         heal_amount += caster.get_modifier(caster.dnd_class.primary_stat)
