@@ -6,7 +6,6 @@ class AIDungeonMaster:
         self.model = model_name
 
     def parse_intent(self, player_text: str) -> dict:
-        """PASS 1: Forces the AI to extract intent into a strict JSON format."""
         prompt = """You are a game engine parser. Extract the user's intent into strict JSON.
         Schema:
         {
