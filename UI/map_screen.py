@@ -27,8 +27,14 @@ class MapScreen(Screen):
     ]
 
     def action_close_map(self) -> None:
-        """Forces the current screen to close and return to main."""
         self.app.pop_screen()
+
+    def on_mount(self) -> None:
+        self.refresh_map()
+
+    def refresh_map(self) -> None:
+        map_widget = self.query_one("#map-display", Static)
+        map_widget.update(self.app.engine.map_data)
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)

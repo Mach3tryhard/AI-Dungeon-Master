@@ -1,9 +1,20 @@
+import sys
+import os
+
+# Get the absolute path to the parent directory and add it to Python's path
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.append(parent_dir)
+
+from textual import on, work
 from textual.app import App, ComposeResult
 from textual.containers import Container, Grid, ScrollableContainer
 from textual.widgets import Footer, Static, Input
 from textual.reactive import reactive
 import random
 from textual.widgets import Header, Footer, Static
+from engine import GameEngine
+from ai_dm import AIDungeonMaster
 
 from map_screen import MapScreen
 from sheet import CharacterSheetScreen
@@ -148,6 +159,7 @@ class DNDGameApp(App):
 
             with ScrollableContainer(id="right-column"):
                 yield Static("## The Story\nYour journey begins...", id="story-panel")
+                yield Static("## Action Log\n", id="chat-panel")
                 yield Static("## Equipment", id="weapon-info-panel")
                 yield Input(placeholder="Your action...", id="dm-input")
 
@@ -155,6 +167,96 @@ class DNDGameApp(App):
 
     def on_mount(self) -> None:
         self.title = "AI DM: Dungeons & Dragons"
+        self.engine = GameEngine()
+        self.ai_dm = AIDungeonMaster(model_name="llama3")
+        
+        self.update_story_display()
+        self.update_equipment_display()
+        self.set_interval(1.0, self.game_loop)
+
+    def game_loop(self) -> None:
+        self.engine.tick()
+
+        if self.engine.needs_equipment_update:
+            self.update_equipment_display()
+            self.engine.needs_equipment_update = False
+
+        if self.engine.needs_story_update:
+            self.update_story_display()
+            self.engine.needs_story_update = False
+
+        if self.engine.needs_map_update:
+            if isinstance(self.screen, MapScreen):
+                self.screen.refresh_map()
+            self.engine.needs_map_update = False
+
+        if self.engine.needs_sheet_update:
+            if isinstance(self.screen, CharacterSheetScreen):
+                self.screen.refresh_sheet()
+            self.engine.needs_sheet_update = False
+
+    def update_story_display(self) -> None:
+        """Updates both the Story box and the new Chat box."""
+        # 1. Update the main story
+        story_panel = self.query_one("#story-panel", Static)
+        story_panel.update("## The Story\n" + "\n\n".join(self.engine.story_log))
+
+        # 2. Update the chat log
+        chat_panel = self.query_one("#chat-panel", Static)
+        chat_text = "\n".join(self.engine.chat_log)
+        
+        # 3. Add the "Thinking" indicator temporarily if the flag is True
+        if getattr(self.engine, "is_thinking", False):
+            chat_text += "\n\n[i yellow]*(The DM is rolling dice and thinking...)*[/]"
+            
+        chat_panel.update("## Action Log\n" + chat_text)
+
+    def update_equipment_display(self) -> None:
+        equip_panel = self.query_one("#weapon-info-panel", Static)
+        full_equip = "\n".join(self.engine.player.inventory)
+        equip_panel.update(f"## Equipment\n{full_equip}")
+
+    @on(Input.Submitted, "#dm-input")
+    def handle_player_action(self, event: Input.Submitted) -> None:
+        player_text = event.value
+        if not player_text.strip(): return # Ignore empty submits
+        
+        event.input.value = "" 
+        
+        # 1. Add user text to chat log
+        self.engine.chat_log.append(f"[bold green]You:[/] {player_text}")
+        
+        # 2. Turn on the "Thinking" indicator and force UI refresh
+        self.engine.is_thinking = True
+        self.update_story_display()
+        
+        # 3. Send to background thread so the UI doesn't freeze
+        self.process_turn_background(player_text)
+
+    @work(thread=True)
+    def process_turn_background(self, player_text: str) -> None:
+        """Runs Ollama and the Engine in the background."""
+        intent = self.ai_dm.parse_intent(player_text)
+        engine_result = self.engine.process_action(intent)
+        narrative = self.ai_dm.narrate_outcome(player_text, engine_result)
+        
+        # IMPORTANT: You cannot update the UI directly from a background thread.
+        # We must call a function on the main thread to finalize the turn.
+        self.app.call_from_thread(self.finalize_turn, narrative)
+
+    def finalize_turn(self, narrative: str) -> None:
+        """Runs on the main thread after the AI finishes."""
+        # 1. Turn off the thinking indicator
+        self.engine.is_thinking = False
+        
+        # 2. Append the DM's response to the chat log
+        self.engine.chat_log.append(f"[bold $secondary]DM:[/] {narrative}")
+        
+        # 3. (Optional) Also append major events to the main story log
+        self.engine.add_story(narrative) 
+        
+        # 4. Refresh the displays to remove the thinking text and show the final result
+        self.update_story_display()
 
     def roll_dice(self, die_type: str, outcomes: list[int]) -> None:
         
@@ -178,7 +280,6 @@ class DNDGameApp(App):
     def action_show_map(self) -> None:
         if not isinstance(self.screen, MapScreen):
             self.push_screen(MapScreen())
-
 
 if __name__ == "__main__":
     app = DNDGameApp()
