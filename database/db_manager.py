@@ -57,12 +57,12 @@ class DatabaseManager:
 
         self.cursor.execute("""
             INSERT OR IGNORE INTO dnd_classes (name, primary_stat, health, 
-                            abilites, cantrips, skill_proficiencies, 
+                            abilities, cantrips, skill_proficiencies, 
                             weapon_proficiencies, max_cantrips, max_spells, 
                             spell_slots, spellcaster)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (name, primary_stat, health, 
-              abilites_str, cantrips_str, skill_proficiencies_str, 
+              abilities_str, cantrips_str, skill_proficiencies_str, 
               weapon_proficiencies_str, max_cantrips, max_spells, spell_slots, 
               spellcaster_int))
         self.conn.commit()
