@@ -1,6 +1,7 @@
 from entity_class import Entity
 from spell_class import Spell, damageSpell
 from dnd_class import DNDClass
+from map_class import MapClass
 import random
 
 class GameEngine:
@@ -9,7 +10,6 @@ class GameEngine:
         self.game_time_seconds = 0
         self.chat_log = []
         
-        # --- FLAGS PENTRU ACTUALIZĂRI UI ---
         self.needs_story_update = False
         self.needs_map_update = False
         self.needs_sheet_update = False
@@ -17,14 +17,7 @@ class GameEngine:
         self.needs_sheet_update = False
         self.is_thinking = False
 
-        # --- DATELE HĂRȚII DEFAULT ---
-        self.base_map = [
-            [1, 1, 1, 1, 1, 1, 1],
-            [1, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 1],
-            [1, 1, 1, 1, 1, 1, 1]
-        ]
+        self.map_class = MapClass((7,7))
         
         # CREAM JUCATORUL
         fighter_class = DNDClass(name="Fighter", primary_stat="STR", health=12)
@@ -41,34 +34,14 @@ class GameEngine:
         goblin = Entity(dnd_class=goblin_class, name="Goblin", stats={"STR": 8, "DEX": 14, "CON": 10, "INT": 10, "WIS": 8, "CHA": 8},position=(3,3))
         self.enemies = {goblin.name.lower(): goblin}
 
-    @property  
-    def map_data(self) -> str:
-        lines = []
-        for y, row in enumerate(self.base_map):
-            line_chars = []
-            for x, tile in enumerate(row):
-                char = str(tile)
-                
-                if self.player.position == (x, y):
-                    char = "P"
-                else:
-                    for e in self.enemies.values():
-                        if getattr(e, 'health', 0) > 0 and getattr(e, 'position', None) == (x, y):
-                            char = "E"
-                            break
-                            
-                line_chars.append(char)
-            lines.append(" ".join(line_chars))
-        return "\n".join(lines)
-
     def add_story(self, text: str):
         self.story_log.append(text)
 
     def tick(self):
         self.game_time_seconds += 1
+        self.map_class.mapData(self.enemies, self.player)
     
     def process_action(self, intent: dict) -> str:
-        """Direcționează intenția către funcția corespunzătoare."""
         action = intent.get("action")
         target_name = intent.get("target")
 
@@ -84,26 +57,7 @@ class GameEngine:
 
     # --- FUNCȚII PENTRU ACȚIUNILE JUCĂTORULUI ---
 
-    def _get_adjacent_free_tile(self, target_x: int, target_y: int):
-        for dx in [-1, 0, 1]:
-            for dy in [-1, 0, 1]:
-                if dx == 0 and dy == 0:
-                    continue
-                nx, ny = target_x + dx, target_y + dy
-                
-                if 0 <= ny < len(self.base_map) and 0 <= nx < len(self.base_map[0]):
-                    if self.base_map[ny][nx] == 0:
-                        occupied = False
-                        for e in self.enemies.values():
-                            if getattr(e, 'health', 0) > 0 and getattr(e, 'position', None) == (nx, ny):
-                                occupied = True
-                                break
-                        
-                        if not occupied:
-                            return (nx, ny)
-        return None
-
-    def _auto_approach(self, target) -> tuple[bool, str]:
+    def auto_approach(self, target) -> tuple[bool, str]:
         px, py = self.player.position
         tx, ty = target.position
         distance = max(abs(px - tx), abs(py - ty))
@@ -111,7 +65,7 @@ class GameEngine:
         if distance <= 1:
             return True, ""
             
-        free_tile = self._get_adjacent_free_tile(tx, ty)
+        free_tile = map_class.getAdjacentFreeTile(tx, ty)
         if free_tile:
             self.player.position = free_tile
             self.needs_map_update = True
@@ -130,7 +84,7 @@ class GameEngine:
         if target.health <= 0:
             return f"Player tried to attack {target.name}, but it is already dead."
 
-        reached_target, move_narrative = self._auto_approach(target)
+        reached_target, move_narrative = self.auto_approach(target)
         if not reached_target:
             return f"Attack failed. {move_narrative}"
         
@@ -140,11 +94,11 @@ class GameEngine:
         result = move_narrative + f"Player attacked {target.name}. Hit for {damage} damage. "
         if target.health <= 0:
             result += f"{target.name} died."
-            self.needs_map_update = True  
         else:
             result += f"{target.name} has {target.health} HP left."
         
         self.needs_sheet_update = True 
+        self.needs_map_update=True
         return result
 
     def action_talk(self, target_name: str) -> str:
@@ -155,7 +109,7 @@ class GameEngine:
         if not target:
             return f"Player tried to talk to {target_name}, but they aren't here."
             
-        reached_target, move_narrative = self._auto_approach(target)
+        reached_target, move_narrative = self.auto_approach(target)
         if not reached_target:
             return f"Talk failed. {move_narrative}"
                 
