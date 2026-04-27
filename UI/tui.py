@@ -1,7 +1,6 @@
 import sys
 import os
 
-# Get the absolute path to the parent directory and add it to Python's path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 sys.path.append(parent_dir)
@@ -91,8 +90,6 @@ DICE_SHAPES = {
 # --- Custom ASCII Dice Widget ---
 
 class AsciiDie(Static):
-    """An ASCII die that animates random numbers before landing on a final outcome."""
-
     def __init__(self, die_type: str, final_value: int, **kwargs):
         super().__init__(**kwargs)
         self.die_type = die_type
@@ -103,7 +100,6 @@ class AsciiDie(Static):
         self.template = DICE_SHAPES.get(self.die_type, DICE_SHAPES["d6"])
 
     def on_mount(self) -> None:
-        """Start the animation loop at 15 frames per second."""
         self.animation_timer = self.set_interval(1 / 15, self.animate_roll)
 
     def animate_roll(self) -> None:
@@ -119,9 +115,9 @@ class AsciiDie(Static):
             self.animation_timer.pause()
 
     def draw_face(self, value: int) -> None:
-        """Formats the ASCII string with the number and updates the widget."""
         
         val_str = f"{value:>2}" 
+
         art = self.template.format(val=val_str)
         
         self.update(f"[bold $primary]{art}[/]")
@@ -130,8 +126,6 @@ class AsciiDie(Static):
 # --- App Logic ---
 
 class DNDGameApp(App):
-    """A Textual app to display a D&D DM agent game interface."""
-
     CSS_PATH = "style.tcss"
 
     BINDINGS = [
