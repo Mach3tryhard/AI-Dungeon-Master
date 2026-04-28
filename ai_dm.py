@@ -1,5 +1,7 @@
 import ollama
 import json
+import subprocess
+import time
 
 class AIDungeonMaster:
     def __init__(self, model_name="llama3"):
