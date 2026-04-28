@@ -1,9 +1,11 @@
 from dnd_class import *
 from spell_class import *
+from weapon_class import *
+from inventory_class import *
 from utils import *
 
 class Entity:
-    def __init__(self, dnd_class: DNDClass, name: str, stats: dict, speed: int = 5, position: tuple = (0, 0), inventory: list = None, weapon = None,location: str = "forest"):
+    def __init__(self, dnd_class: DNDClass, name: str, stats: dict, speed: int = 5, position: tuple = (0, 0), inventory: Inventory = None, weapon = None,location: str = "forest"):
         self.dnd_class = dnd_class
         self.stats = stats
         self.name = name
@@ -13,7 +15,7 @@ class Entity:
         self.level = 1
         self.location = location
         self.position = position
-        self.inventory = inventory if inventory is not None else []
+        self.inventory = inventory if inventory is not None else Inventory()
         self.influenced = False #True if charmed/intimidated/persuaded etc. 
         self.weapon = weapon
 
@@ -21,8 +23,11 @@ class Entity:
     def ac(self):
         return 10 + self.get_modifier("DEX")
 
-    def equip_weapon(self, weapon):
-        self.weapon = weapon
+    def equip_weapon(self, weapon: Weapon):
+        if weapon in self.inventory.items:
+            self.weapon = weapon
+        else:
+            return False
 
     def get_modifier(self, stat: str):
         return (self.stats[stat] - 10) // 2 
