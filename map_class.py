@@ -8,20 +8,30 @@ class MapClass:
         self.size = size
         self.base_map = [["0" for _ in range(size[1])] for _ in range(size[0])]
 
+        self.mapping = {
+            'enemy': "E",
+            'player': "P",
+            'barrier': "1",
+            'empty': "0",
+            'wood': "2",
+            'stone': "1",
+            'npc': "N"
+        }
+
         for i in range(size[0]):
             for j in range(size[1]):
                 if i == 0 or i == size[0] - 1 or j == 0 or j == size[1] - 1:
-                    self.base_map[i][j] = "1"
+                    self.base_map[i][j] = self.mapping['barrier']
 
     def mapData(self,enemies,player):
         for i in range(self.size[0]):
             for j in range(self.size[1]):
                 if player.position == (i, j):
-                    self.base_map[i][j] = "P"
+                    self.base_map[i][j] = self.mapping['player']
                 else:
                     for e in enemies.values():
                         if getattr(e, 'health', 0) > 0 and getattr(e, 'position', None) == (i, j):
-                            self.base_map[i][j] = "E"
+                            self.base_map[i][j] = self.mapping['enemy']
 
     def getAdjacentFreeTile(self, target_x: int, target_y: int):
         for dx in [-1, 0, 1]:

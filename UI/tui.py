@@ -129,9 +129,9 @@ class DNDGameApp(App):
     CSS_PATH = "style.tcss"
 
     BINDINGS = [
-        ("r", "roll_test", "Test Roll"), 
-        ("c", "show_sheet", "Open Character Sheet"),
-        ("m", "show_map", "Open Map"),
+        ("ctrl+r", "roll_test", "Test Roll"), 
+        ("ctrl+s", "show_sheet", "Open Character Sheet"),
+        ("ctrl+o", "show_map", "Open Map"),
     ]
 
     def compose(self) -> ComposeResult:
