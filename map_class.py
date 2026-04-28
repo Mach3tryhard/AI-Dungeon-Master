@@ -4,9 +4,7 @@ from dnd_class import DNDClass
 import random
 
 class MapClass:
-    def __init__(self,size=(7,7)):
-        self.size = size
-        self.base_map = [["0" for _ in range(size[1])] for _ in range(size[0])]
+    def __init__(self,size=(7,7),matrix=None):
 
         self.mapping = {
             'enemy': "E",
@@ -18,20 +16,36 @@ class MapClass:
             'npc': "N"
         }
 
-        for i in range(size[0]):
-            for j in range(size[1]):
-                if i == 0 or i == size[0] - 1 or j == 0 or j == size[1] - 1:
-                    self.base_map[i][j] = self.mapping['barrier']
+        self.size = size
+        if matrix:
+            self.size = (len(matrix), len(matrix[0]))
+            self.base_map = [[str(cell) for cell in row] for row in matrix]
+        else:
+            self.size = size
+            self.base_map = [["0" for _ in range(size[1])] for _ in range(size[0])]
+            for i in range(size[0]):
+                for j in range(size[1]):
+                    if i == 0 or i == size[0] - 1 or j == 0 or j == size[1] - 1:
+                        self.base_map[i][j] = self.mapping['barrier']
+        
+        self.full_map = [["0" for _ in range(self.size[1])] for _ in range(self.size[0])]
 
-    def mapData(self,enemies,player):
+
+    def mapData(self,enemies: dict, npcs: dict,player : Entity):
         for i in range(self.size[0]):
             for j in range(self.size[1]):
-                if player.position == (i, j):
-                    self.base_map[i][j] = self.mapping['player']
+                self.full_map[i][j] = self.base_map[i][j]
+        for i in range(self.size[0]):
+            for j in range(self.size[1]):
+                if player.position == (j, i):
+                    self.full_map[i][j] = self.mapping['player']
                 else:
                     for e in enemies.values():
-                        if getattr(e, 'health', 0) > 0 and getattr(e, 'position', None) == (i, j):
-                            self.base_map[i][j] = self.mapping['enemy']
+                        if getattr(e, 'health', 0) > 0 and getattr(e, 'position', None) == (j, i):
+                            self.full_map[i][j] = self.mapping['enemy']
+                    for n in npcs.values():
+                        if getattr(n, 'position', None) == (j, i):
+                            self.full_map[i][j] = self.mapping['npc']
 
     def getAdjacentFreeTile(self, target_x: int, target_y: int, enemies: dict):
         for dx in [-1, 0, 1]:
@@ -41,11 +55,9 @@ class MapClass:
                 nx, ny = target_x + dx, target_y + dy
                 
                 if 0 <= ny < len(self.base_map) and 0 <= nx < len(self.base_map[0]):
-                    # FIX 1: Verificăm folosind string-ul corect din dicționarul tău de mapping
                     if self.base_map[ny][nx] == self.mapping['empty']:
                         
                         occupied = False
-                        # FIX 2: Folosim parametrul 'enemies' primit, nu 'self.enemies'
                         for e in enemies.values():
                             if getattr(e, 'health', 0) > 0 and getattr(e, 'position', None) == (nx, ny):
                                 occupied = True

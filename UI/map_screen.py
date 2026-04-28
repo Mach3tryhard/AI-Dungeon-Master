@@ -22,7 +22,7 @@ class MapScreen(Screen):
     def refresh_map(self) -> None:
         map_widget = self.query_one("#map-display", Static)
 
-        matrix = self.app.engine.map_class.base_map
+        matrix = self.app.engine.map_class.full_map
         map_display = "\n".join(" ".join(str(cell) for cell in row) for row in matrix)
         map_widget.update(map_display)
 
