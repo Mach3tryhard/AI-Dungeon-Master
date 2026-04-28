@@ -33,7 +33,7 @@ class GameEngine:
         self.global_npcs = []
         self.quests = {}
 
-        # --- JUCĂTORUL ---
+        # --- JUCATORUL ---
         fighter_class = DNDClass(name="Fighter", primary_stat="STR", health=12)
         self.player = Entity(
             dnd_class=fighter_class,
