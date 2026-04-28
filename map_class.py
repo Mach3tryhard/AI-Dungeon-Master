@@ -6,30 +6,22 @@ import random
 class MapClass:
     def __init__(self,size=(7,7)):
         self.size = size
-        rows, cols = size
-        self.base_map = [[0 for _ in range(cols)] for _ in range(rows)]
+        self.base_map = [["0" for _ in range(size[1])] for _ in range(size[0])]
 
-        for i in range(rows):
-            for j in range(cols):
-                if i == 0 or i == rows - 1 or j == 0 or j == cols - 1:
-                    self.base_map[i][j] = 1
+        for i in range(size[0]):
+            for j in range(size[1]):
+                if i == 0 or i == size[0] - 1 or j == 0 or j == size[1] - 1:
+                    self.base_map[i][j] = "1"
 
-    def mapData(self,enemies,player) -> str:
-        lines = []
-        for y, row in enumerate(self.base_map):
-            line_chars = []
-            for x, tile in enumerate(row):
-                char = str(tile)
-                if player.position == (x, y):
-                    char = "P"
+    def mapData(self,enemies,player):
+        for i in range(self.size[0]):
+            for j in range(self.size[1]):
+                if player.position == (i, j):
+                    self.base_map[i][j] = "P"
                 else:
                     for e in enemies.values():
-                        if getattr(e, 'health', 0) > 0 and getattr(e, 'position', None) == (x, y):
-                            char = "E"
-                            break
-                line_chars.append(char)
-            lines.append(" ".join(line_chars))
-        return "\n".join(lines)
+                        if getattr(e, 'health', 0) > 0 and getattr(e, 'position', None) == (i, j):
+                            self.base_map[i][j] = "E"
 
     def getAdjacentFreeTile(self, target_x: int, target_y: int):
         for dx in [-1, 0, 1]:
