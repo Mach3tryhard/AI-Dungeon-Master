@@ -65,7 +65,7 @@ class GameEngine:
         if distance <= 1:
             return True, ""
             
-        free_tile = map_class.getAdjacentFreeTile(tx, ty)
+        free_tile = self.map_class.getAdjacentFreeTile(tx, ty)
         if free_tile:
             self.player.position = free_tile
             self.needs_map_update = True
