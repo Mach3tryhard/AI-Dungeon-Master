@@ -33,7 +33,7 @@ class MapClass:
                         if getattr(e, 'health', 0) > 0 and getattr(e, 'position', None) == (i, j):
                             self.base_map[i][j] = self.mapping['enemy']
 
-    def getAdjacentFreeTile(self, target_x: int, target_y: int):
+    def getAdjacentFreeTile(self, target_x: int, target_y: int, enemies: dict):
         for dx in [-1, 0, 1]:
             for dy in [-1, 0, 1]:
                 if dx == 0 and dy == 0:
@@ -41,9 +41,12 @@ class MapClass:
                 nx, ny = target_x + dx, target_y + dy
                 
                 if 0 <= ny < len(self.base_map) and 0 <= nx < len(self.base_map[0]):
-                    if self.base_map[ny][nx] == 0:
+                    # FIX 1: Verificăm folosind string-ul corect din dicționarul tău de mapping
+                    if self.base_map[ny][nx] == self.mapping['empty']:
+                        
                         occupied = False
-                        for e in self.enemies.values():
+                        # FIX 2: Folosim parametrul 'enemies' primit, nu 'self.enemies'
+                        for e in enemies.values():
                             if getattr(e, 'health', 0) > 0 and getattr(e, 'position', None) == (nx, ny):
                                 occupied = True
                                 break

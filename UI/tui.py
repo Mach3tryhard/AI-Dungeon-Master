@@ -1,5 +1,6 @@
 import sys
 import os
+import subprocess
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
@@ -129,9 +130,9 @@ class DNDGameApp(App):
     CSS_PATH = "style.tcss"
 
     BINDINGS = [
-        ("ctrl+r", "roll_test", "Test Roll"), 
         ("ctrl+s", "show_sheet", "Open Character Sheet"),
         ("ctrl+o", "show_map", "Open Map"),
+        ("ctrl+r", "roll_test", "Test Roll"), 
     ]
 
     def compose(self) -> ComposeResult:
@@ -261,5 +262,6 @@ class DNDGameApp(App):
             self.push_screen(MapScreen())
 
 if __name__ == "__main__":
+    subprocess.Popen(["ollama", "serve"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     app = DNDGameApp()
     app.run()

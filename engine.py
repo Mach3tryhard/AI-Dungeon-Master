@@ -2,6 +2,7 @@ from entity_class import Entity
 from spell_class import Spell, damageSpell
 from dnd_class import DNDClass
 from map_class import MapClass
+from utils import Dice
 import random
 
 class GameEngine:
@@ -65,7 +66,7 @@ class GameEngine:
         if distance <= 1:
             return True, ""
             
-        free_tile = self.map_class.getAdjacentFreeTile(tx, ty)
+        free_tile = self.map_class.getAdjacentFreeTile(tx, ty,self.enemies)
         if free_tile:
             self.player.position = free_tile
             self.needs_map_update = True

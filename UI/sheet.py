@@ -10,6 +10,9 @@ class CharacterSheetScreen(Screen):
     
     BINDINGS = [
         ("escape", "close_sheet", "Back to Main"),
+        ("ctrl+r", "do_nothing",False), 
+        ("ctrl+s", "do_nothing",False),
+        ("ctrl+o", "do_nothing",False),
     ]
 
     def action_close_sheet(self) -> None:
