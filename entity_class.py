@@ -3,7 +3,7 @@ from spell_class import *
 from utils import *
 
 class Entity:
-    def __init__(self, dnd_class: DNDClass, name: str, stats: dict, speed: int = 5, position: tuple = (0, 0), inventory: list = None, weapon = None):
+    def __init__(self, dnd_class: DNDClass, name: str, stats: dict, speed: int = 5, position: tuple = (0, 0), inventory: list = None, weapon = None,location: str = "forest"):
         self.dnd_class = dnd_class
         self.stats = stats
         self.name = name
@@ -11,6 +11,7 @@ class Entity:
         self.spells = dnd_class.spells
         self.speed = speed
         self.level = 1
+        self.location = location
         self.position = position
         self.inventory = inventory if inventory is not None else []
         self.influenced = False #True if charmed/intimidated/persuaded etc. 
