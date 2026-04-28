@@ -5,11 +5,12 @@ if TYPE_CHECKING:
     from entity_class import Entity
 
 class Weapon:
-    def __init__(self, name, damage_roll: str, damage_type: str, level: int):
+    def __init__(self, name, damage_roll: str, damage_type: str, level: int, range: int = 1):
         self.name = name
         self.damage_roll = damage_roll
         self.damage_type = damage_type
         self.level = level
+        self.range = range
         
 
     def attack(self, attacker: 'Entity', target: 'Entity'):
