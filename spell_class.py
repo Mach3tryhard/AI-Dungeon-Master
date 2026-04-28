@@ -29,13 +29,15 @@ class damageSpell(Spell):
         #exit if spell doesn't hit
         if d20_roll < target.ac:
             print(f"{caster.name} casts {self.name} on {target.name} but misses!")
-            return
+            return -1
         
         damage = dice.roll(self.dice_roll)
         #each character class has a stat that increases spell damage
         damage += caster.get_modifier(caster.dnd_class.primary_stat) 
+
+        #damage is dealt in engine.py when the method is called
         target.take_damage(damage, self.damage_type)
-        print(f"{caster.name} casts {self.name} on {target.name} for {damage} {self.damage_type} damage!")
+        return damage
 # damageSpell
 
 
@@ -48,11 +50,11 @@ class healingSpell(Spell):
 
         heal_amount = dice.roll(self.dice_roll)
         heal_amount += caster.get_modifier(caster.dnd_class.primary_stat)
-        target.heal(heal_amount)
-        print(f"{caster.name} casts {self.name} on {target.name} for {heal_amount} healing!")
-    
+        # target.heal(heal_amount)
+        return heal_amount
 # healingSpell
 
+#TODO
 class buffingSpell(Spell):
     def __init__(self, name: str, spell_range: float, level: int, dice_roll: str, use_count: int):
         super().__init__(name, spell_range, level, dice_roll)
