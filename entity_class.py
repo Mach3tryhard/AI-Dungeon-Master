@@ -3,7 +3,7 @@ from spell_class import *
 from utils import *
 
 class Entity:
-    def __init__(self, dnd_class: DNDClass, name: str, stats: dict, speed: int = 5, position: tuple = (0, 0), inventory: list = None):
+    def __init__(self, dnd_class: DNDClass, name: str, stats: dict, speed: int = 5, position: tuple = (0, 0), inventory: list = None, weapon = None):
         self.dnd_class = dnd_class
         self.stats = stats
         self.name = name
@@ -14,10 +14,14 @@ class Entity:
         self.position = position
         self.inventory = inventory if inventory is not None else []
         self.influenced = False #True if charmed/intimidated/persuaded etc. 
+        self.weapon = weapon
 
     @property
     def ac(self):
         return 10 + self.get_modifier("DEX")
+
+    def equip_weapon(self, weapon):
+        self.weapon = weapon
 
     def get_modifier(self, stat: str):
         return (self.stats[stat] - 10) // 2 
@@ -36,5 +40,9 @@ class Entity:
     #TODO: add skill checks. how should this be implemented?
     # each skill requires a certain stat...
     def skill_check(self, skill: str):
+        pass
+
+    #TODO: 
+    def move(self, new_position: tuple, map_grid: list):
         pass
     
