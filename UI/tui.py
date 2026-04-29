@@ -88,7 +88,6 @@ DICE_SHAPES = {
     )
 }
 
-# --- Custom ASCII Dice Widget ---
 
 class AsciiDie(Static):
     def __init__(self, die_type: str, final_value: int, **kwargs):
