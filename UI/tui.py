@@ -204,7 +204,7 @@ class DNDGameApp(App):
 
     def update_equipment_display(self) -> None:
         equip_panel = self.query_one("#weapon-info-panel", Static)
-        full_equip = "\n".join(self.engine.player.inventory)
+        full_equip = "\n".join(self.engine.player.inventory.items)
         equip_panel.update(f"## Equipment\n{full_equip}")
 
     @on(Input.Submitted, "#dm-input")

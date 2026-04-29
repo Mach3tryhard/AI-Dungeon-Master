@@ -54,7 +54,7 @@ class CharacterSheetScreen(Screen):
 
         inventory_list = getattr(p, "inventory", [])
         if inventory_list:
-            inv_text = "\n".join([f"* {item}" for item in inventory_list])
+            inv_text = "\n".join([f"* {item}" for item in inventory_list.items])
         else:
             inv_text = "Empty"
         self.query_one("#data-equipment", Static).update(inv_text)

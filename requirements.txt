@@ -1,0 +1,4 @@
+textual
+sqlite3
+ollama
+json
