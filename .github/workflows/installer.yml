@@ -30,7 +30,7 @@ jobs:
       run: |
         # --onefile ambalează totul într-un singur .exe
         # --windowed ascunde consola (folosește-l doar dacă e aplicație cu interfață grafică)
-        pyinstaller --onefile main.py
+        pyinstaller --onefile UI/tui.py
       shell: pwsh
 
     - name: Upload EXE as Artifact
