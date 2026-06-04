@@ -3,6 +3,8 @@ from spell_class import Spell, damageSpell
 from dnd_class import DNDClass
 from map_class import MapClass
 from utils import Dice
+from weapon_class import Weapon
+from inventory_class import Inventory
 import random
 
 class GameEngine:
@@ -33,6 +35,16 @@ class GameEngine:
         self.global_npcs = []
         self.quests = {}
 
+        iron_sword = Weapon(
+            name="Iron Sword", 
+            damage_roll="1d8", 
+            damage_type="slashing",
+            level=1, 
+            range=1
+        )
+        
+        inventory_default = Inventory(items=[iron_sword])
+
         # --- JUCATORUL ---
         fighter_class = DNDClass(name="Fighter", primary_stat="STR", health=12)
         self.player = Entity(
@@ -40,7 +52,8 @@ class GameEngine:
             stats={"STR": 16, "DEX": 14, "CON": 15, "INT": 9, "WIS": 11, "CHA": 13},
             name="Galdor",
             position=(1, 1),
-            location=self.current_location_name
+            location=self.current_location_name,
+            inventory=inventory_default
         )
 
         # Inamic și NPC inițial de test

@@ -52,12 +52,20 @@ class CharacterSheetScreen(Screen):
         self.query_one("#data-hp-cur", Static).update(f"{getattr(p, 'health', 0)} / {max_hp}")
         self.query_one("#data-hp-temp", Static).update(str(getattr(p, "temp_health", 0)))
 
-        inventory_list = getattr(p, "inventory", [])
-        if inventory_list:
-            inv_text = "\n".join([f"* {item}" for item in inventory_list])
+        inventory_items = getattr(p.inventory, "items", []) if hasattr(p, "inventory") else []
+
+        if inventory_items:
+            item_blocks = []
+            for item in inventory_items:
+                item_text = f"- [cornflowerblue]{item.name}[/] [dim]({item.damage_roll} {item.damage_type})[/]"
+                item_blocks.append(item_text)
+            
+            inv_text = "\n".join(item_blocks)
         else:
-            inv_text = "Empty"
+            inv_text = "[dim italic]Empty[/]"
+
         self.query_one("#data-equipment", Static).update(inv_text)
+
 
         self.query_one("#data-traits", Static).update("---")
         self.query_one("#data-ideals", Static).update("---")

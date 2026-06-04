@@ -152,9 +152,9 @@ class DNDGameApp(App):
                         pass 
 
             with ScrollableContainer(id="right-column"):
-                yield Static("## The Story\nYour journey begins...", id="story-panel")
-                yield Static("## Action Log\n", id="chat-panel")
-                yield Static("## Equipment", id="weapon-info-panel")
+                # yield Static("## The Story\nYour journey begins...", id="story-panel")
+                yield Static("[bold] Story log [/]\n", id="chat-panel")
+                yield Static("[bold] Equipment [/]", id="weapon-info-panel")
                 yield Input(placeholder="Your action...", id="dm-input")
 
         yield Footer()
@@ -190,8 +190,8 @@ class DNDGameApp(App):
             self.engine.needs_sheet_update = False
 
     def update_story_display(self) -> None:
-        story_panel = self.query_one("#story-panel", Static)
-        story_panel.update("## The Story\n" + "\n\n".join(self.engine.story_log))
+        # story_panel = self.query_one("#story-panel", Static)
+        # story_panel.update("## The Story\n" + "\n\n".join(self.engine.story_log))
 
         chat_panel = self.query_one("#chat-panel", Static)
         chat_text = "\n".join(self.engine.chat_log)
@@ -199,12 +199,27 @@ class DNDGameApp(App):
         if getattr(self.engine, "is_thinking", False):
             chat_text += "\n\n[i yellow]*(The DM is rolling dice and thinking...)*[/]"
             
-        chat_panel.update("## Action Log\n" + chat_text)
+        chat_panel.update("[bold] Story Log [/]\n" + chat_text)
 
     def update_equipment_display(self) -> None:
         equip_panel = self.query_one("#weapon-info-panel", Static)
-        full_equip = "\n".join(self.engine.player.inventory)
-        equip_panel.update(f"## Equipment\n{full_equip}")
+
+        if not hasattr(self.engine.player, "inventory") or not self.engine.player.inventory.items:
+            equip_panel.update("## Equipment\n[dim italic]Inventory is empty.[/]")
+            return
+
+        item_blocks = []
+
+        for item in self.engine.player.inventory.items:
+            item_text = (
+                f"- [cornflowerblue]{item.name}[/] [dim](Lvl {item.level})[/]\n"
+                f"  Damage: [red]{item.damage_roll}[/] {item.damage_type}\n"
+                f"  Range: {item.range}"
+            )
+            item_blocks.append(item_text)
+
+        full_equip = '\n\n'.join(item_blocks)
+        equip_panel.update(f"[bold] Equipment [/]\n{full_equip}")
 
     @on(Input.Submitted, "#dm-input")
     def handle_player_action(self, event: Input.Submitted) -> None:
