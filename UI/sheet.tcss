@@ -222,3 +222,37 @@ CharacterSheetScreen {
 .death-save-circles {
     width: auto; /* Prevents the brackets from wrapping to the next line */
 }
+
+/* -- Modal tcss --*/
+ActionModal {
+    align: center middle;
+    background: $background 50%;
+}
+
+#modal-dialog {
+    width: 40;
+    height: auto;
+    padding: 1 2;
+    background: $surface;
+    border: heavy $accent;
+}
+
+#modal-title {
+    content-align: center middle;
+    text-style: bold;
+    color: $warning;
+    margin-bottom: 1;
+}
+
+#modal-text {
+    margin-bottom: 1;
+}
+
+#modal-buttons {
+    align: center middle;
+    height: 3;
+}
+
+Button {
+    margin: 0 1;
+}

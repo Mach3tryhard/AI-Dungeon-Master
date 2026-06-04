@@ -8,16 +8,19 @@ sys.path.append(parent_dir)
 
 from textual import on, work
 from textual.app import App, ComposeResult
-from textual.containers import Container, Grid, ScrollableContainer
-from textual.widgets import Footer, Static, Input
+from textual.containers import Container, Grid, ScrollableContainer, Vertical, Horizontal
+from textual.widgets import Header, Footer, Static, Input, Button
 from textual.reactive import reactive
-import random
+
 from textual.widgets import Header, Footer, Static
 from engine import GameEngine
 from ai_dm import AIDungeonMaster
 
 from map_screen import MapScreen
 from sheet import CharacterSheetScreen
+import random
+import re
+from modals import AttackConfirmationModal
 
 ASCII_WIZARD = """
           /\ 
@@ -227,20 +230,66 @@ class DNDGameApp(App):
         if not player_text.strip(): return
         
         event.input.value = "" 
-        
         self.engine.chat_log.append(f"[bold green]You:[/] {player_text}")
         
-        self.engine.is_thinking = True
+        self.engine.is_thinking = True # Lock UI
         self.update_story_display()
         
-        self.process_turn_background(player_text)
+        # Step 1: Start background thread to just get the intent
+        self.prepare_turn_background(player_text)
 
     @work(thread=True)
-    def process_turn_background(self, player_text: str) -> None:
+    def prepare_turn_background(self, player_text: str) -> None:
+        """Runs in background: Asks AI what the player wants to do."""
         intent = self.ai_dm.parse_intent(player_text)
-        engine_result = self.engine.process_action(intent,ai_dm=self.ai_dm)
+        
+        # Call back to the main thread to show the UI modal
+        self.app.call_from_thread(self.show_action_modal, player_text, intent)
+
+    def show_action_modal(self, player_text: str, intent: dict) -> None:
+        """Runs on main thread: Builds the specific modal and displays it."""
+        action = intent.get("action", "unknown").lower()
+        target = intent.get("target", "None")
+        
+        # The callback function when the modal closes
+        def check_modal_result(confirmed: bool):
+            if confirmed:
+                # Player clicked confirm! Start the background math and AI thread.
+                self.execute_turn_background(player_text, intent)
+            else:
+                self.engine.chat_log.append("\n[dim italic]Action cancelled.[/]")
+                self.engine.is_thinking = False
+                self.update_story_display()
+
+        # If it's an attack, show our specific attack modal
+        if action == "attack":
+            weapon = getattr(self.engine.player, "weapon", None)
+            w_name = weapon.name if weapon else "Fists (Unarmed)"
+            self.push_screen(AttackConfirmationModal(target, w_name), check_modal_result)
+        else:
+            # Fallback if they do something else (like travel/talk) 
+            # (You can build specific modals for these later!)
+            self.execute_turn_background(player_text, intent)
+
+    @work(thread=True)
+    def execute_turn_background(self, player_text: str, intent: dict) -> None:
+        """Runs in background: Does math, triggers accurate dice, gets AI story."""
+        
+        # 1. Engine does the instant math (e.g. "Hit. Rolled a 14. Dealt 5 damage.")
+        engine_result = self.engine.process_action(intent, ai_dm=self.ai_dm)
+        
+        # 2. Extract the actual roll from the engine's string!
+        # This looks for the word "Rolled a" or "Rolled an" followed by numbers
+        roll_match = re.search(r"Rolled a?n? (\d+)", engine_result, re.IGNORECASE)
+        actual_roll = int(roll_match.group(1)) if roll_match else 20 
+        
+        # 3. Tell the UI to start spinning the dice and land on the EXACT engine roll
+        self.app.call_from_thread(self.roll_dice, "d20", [actual_roll])
+        
+        # 4. AI writes the dramatic text based on the math (This takes 2-4 seconds)
         narrative = self.ai_dm.narrate_outcome(player_text, engine_result)
         
+        # 5. Send the final story back to the UI right as the dice animation finishes
         self.app.call_from_thread(self.finalize_turn, narrative)
 
     def finalize_turn(self, narrative: str) -> None:
