@@ -13,19 +13,32 @@ class Weapon:
         self.range = range
         
 
-    def attack(self, attacker: 'Entity', target: 'Entity'):
+    def attack(self, attacker: 'Entity', target: 'Entity') -> dict:
         dice = Dice()
         d20_roll = dice.roll('1d20')
-
-        #exit if attack doesn't hit
-        if d20_roll < target.ac:
-            print(f"{attacker.name} attacks {target.name} with {self.name} but misses!")
-            return -1
         
-        damage = dice.roll(self.damage_roll)
-        damage += attacker.get_modifier(attacker.dnd_class.primary_stat) 
+        # Obținem modificatorul. Pentru simplitate, folosim atributul principal al clasei jucătorului
+        modifier = attacker.get_modifier(attacker.dnd_class.primary_stat)
+        total_attack = d20_roll + modifier
 
-        #damage is dealt in engine.py 
-        # target.take_damage(damage, self.damage_type)
-        return damage
+        # Verificăm dacă lovește
+        if total_attack < target.ac:
+            return {
+                "hit": False,
+                "d20_roll": d20_roll,
+                "total_attack": total_attack,
+                "damage": 0,
+                "damage_type": self.damage_type
+            }
+        
+        base_damage = dice.roll(self.damage_roll)
+        total_damage = max(1, base_damage + modifier) # Asigurăm minimum 1 damage
+
+        return {
+            "hit": True,
+            "d20_roll": d20_roll,
+            "total_attack": total_attack,
+            "damage": total_damage,
+            "damage_type": self.damage_type
+        }
     

@@ -58,7 +58,7 @@ class GameEngine:
 
         # Inamic și NPC inițial de test
         goblin_class = DNDClass(name="Monster", primary_stat="DEX", health=15)
-        goblin = Entity(dnd_class=goblin_class, name="Goblin", stats={"STR": 8}, position=(4, 2), location=self.current_location_name)
+        goblin = Entity(dnd_class=goblin_class, name="Goblin", stats={"STR": 8,"DEX":10}, position=(4, 2), location=self.current_location_name)
         self.global_enemies.append(goblin)
 
         npc_class = DNDClass(name="Civilian", primary_stat="CHA", health=5)
@@ -132,17 +132,44 @@ class GameEngine:
         if not reached_target:
             return f"Attack failed. {move_narrative}"
         
-        damage = random.randint(1, 8) + self.player.get_modifier("STR")
-        target.take_damage(damage, "slashing")
+        weapon = getattr(self.player, "weapon", None)
+        target_ac = getattr(target, 'ac', 10)
         
-        result = move_narrative + f"Player attacked {target.name}. Hit for {damage} damage. "
+        # 1. DELEGĂM LOGICA CĂTRE CLASA WEAPON
+        if weapon:
+            attack_result = weapon.attack(self.player, target)
+            weapon_name = weapon.name
+        else:
+            # Fallback dacă jucătorul nu are nicio armă echipată (Pumni)
+            from utils import Dice
+            dice = Dice()
+            d20_roll = dice.roll("1d20")
+            mod = self.player.get_modifier("STR")
+            total_attack = d20_roll + mod
+            hit = total_attack >= target_ac
+            attack_result = {
+                "hit": hit,
+                "d20_roll": d20_roll,
+                "total_attack": total_attack,
+                "damage": max(1, 1 + mod) if hit else 0,
+                "damage_type": "bludgeoning"
+            }
+            weapon_name = "Fists (Unarmed)"
+
+        if not attack_result["hit"]:
+            return move_narrative + f"Miss. Rolled a {attack_result['d20_roll']} (Total: {attack_result['total_attack']} vs AC {target_ac}). Player swung {weapon_name} at {target.name} but missed."
+
+        target.take_damage(attack_result["damage"], attack_result["damage_type"])
+        
+        result = move_narrative + f"Hit! Rolled a {attack_result['d20_roll']} (Total: {attack_result['total_attack']} vs AC {target_ac}). Player attacked {target.name} with {weapon_name} and dealt {attack_result['damage']} {attack_result['damage_type']} damage. "
+        
         if target.health <= 0:
             result += f"{target.name} died."
         else:
             result += f"{target.name} has {target.health} HP left."
         
         self.needs_sheet_update = True 
-        self.needs_map_update=True
+        self.needs_map_update = True
         return result
 
     def action_talk(self, target_name: str, ai_dm=None) -> str:

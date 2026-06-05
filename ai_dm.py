@@ -13,6 +13,7 @@ class AIDungeonMaster:
         {
             "action": "attack" | "travel" | "talk" | "cast_spell" | "other",
             "target": "name of entity" or null,
+            "weapon": "name of weapon explicitly mentioned" or null,
             "direction": "north" | "south" | "east" | "west" or null
         }
         """
@@ -86,7 +87,13 @@ class AIDungeonMaster:
             }
 
     def narrate_outcome(self, player_text: str, engine_result: str) -> str:
-        prompt = """You are a D&D Dungeon Master. Narrate the outcome of the player's action in 2-3 sentences based exactly on the engine's result. Add descriptive flavor but do not invent mechanics or change the facts."""
+        prompt = """You are an expert D&D Dungeon Master. Your job is to narrate the outcome of the player's action based STRICTLY on the provided Engine Result.
+
+        RULES:
+        1. NO HALLUCINATIONS: You must not invent mechanics, counter-attacks, items, or status effects that are not in the Engine Result.
+        2. MANDATORY DATA: You MUST explicitly weave the exact damage dealt and the target's remaining HP (if mentioned) into your narrative.
+        3. SENSORY DETAILS: Write a highly dramatic and vivid paragraph (3-4 sentences). Describe the visual and auditory impact of the weapon based on the damage type (e.g., the heavy crunch of bludgeoning, the swift slice of a sword).
+        4. TONE: Dark, gritty, and epic."""
         try:
             response = ollama.chat(model=self.model, messages=[
                 {"role": "system", "content": prompt},

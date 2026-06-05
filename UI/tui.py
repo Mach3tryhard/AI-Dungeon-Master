@@ -155,7 +155,6 @@ class DNDGameApp(App):
                         pass 
 
             with ScrollableContainer(id="right-column"):
-                # yield Static("## The Story\nYour journey begins...", id="story-panel")
                 yield Static("[bold] Story log [/]\n", id="chat-panel")
                 yield Static("[bold] Equipment [/]", id="weapon-info-panel")
                 yield Input(placeholder="Your action...", id="dm-input")
@@ -193,8 +192,6 @@ class DNDGameApp(App):
             self.engine.needs_sheet_update = False
 
     def update_story_display(self) -> None:
-        # story_panel = self.query_one("#story-panel", Static)
-        # story_panel.update("## The Story\n" + "\n\n".join(self.engine.story_log))
 
         chat_panel = self.query_one("#chat-panel", Static)
         chat_text = "\n".join(self.engine.chat_log)
@@ -232,10 +229,9 @@ class DNDGameApp(App):
         event.input.value = "" 
         self.engine.chat_log.append(f"[bold green]You:[/] {player_text}")
         
-        self.engine.is_thinking = True # Lock UI
+        self.engine.is_thinking = True
         self.update_story_display()
         
-        # Step 1: Start background thread to just get the intent
         self.prepare_turn_background(player_text)
 
     @work(thread=True)
@@ -243,7 +239,6 @@ class DNDGameApp(App):
         """Runs in background: Asks AI what the player wants to do."""
         intent = self.ai_dm.parse_intent(player_text)
         
-        # Call back to the main thread to show the UI modal
         self.app.call_from_thread(self.show_action_modal, player_text, intent)
 
     def show_action_modal(self, player_text: str, intent: dict) -> None:
@@ -251,25 +246,32 @@ class DNDGameApp(App):
         action = intent.get("action", "unknown").lower()
         target = intent.get("target", "None")
         
-        # The callback function when the modal closes
         def check_modal_result(confirmed: bool):
             if confirmed:
-                # Player clicked confirm! Start the background math and AI thread.
                 self.execute_turn_background(player_text, intent)
             else:
                 self.engine.chat_log.append("\n[dim italic]Action cancelled.[/]")
                 self.engine.is_thinking = False
                 self.update_story_display()
 
-        # If it's an attack, show our specific attack modal
         if action == "attack":
-            weapon = getattr(self.engine.player, "weapon", None)
-            w_name = weapon.name if weapon else "Fists (Unarmed)"
+            intended_weapon_str = intent.get("weapon")
+            resolved_weapon = None
+            
+            if intended_weapon_str and hasattr(self.engine.player, "inventory"):
+                for item in self.engine.player.inventory.items:
+                    if intended_weapon_str.lower() in item.name.lower():
+                        resolved_weapon = item
+                        break
+            
+            if not resolved_weapon:
+                resolved_weapon = getattr(self.engine.player, "weapon", None)
+                
+            w_name = resolved_weapon.name if resolved_weapon else "Fists (Unarmed)"
+            
+            intent["resolved_weapon"] = resolved_weapon
+
             self.push_screen(AttackConfirmationModal(target, w_name), check_modal_result)
-        else:
-            # Fallback if they do something else (like travel/talk) 
-            # (You can build specific modals for these later!)
-            self.execute_turn_background(player_text, intent)
 
     @work(thread=True)
     def execute_turn_background(self, player_text: str, intent: dict) -> None:
