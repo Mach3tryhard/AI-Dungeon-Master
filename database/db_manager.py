@@ -19,6 +19,7 @@ class DatabaseManager:
                 health INTEGER NOT NULL,
                 abilities TEXT,
                 cantrips TEXT,
+                spells TEXT,
                 skill_proficiencies TEXT,
                 weapon_proficiencies TEXT,
                 max_cantrips INTEGER NOT NULL,
@@ -43,26 +44,39 @@ class DatabaseManager:
             )            
         """)
 
+        self.cursor.execute("""
+            CREATE TABLE IF NOT EXISTS weapons (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT UNIQUE NOT NULL,
+                primary_stat TEXT NOT NULL,
+                dice_roll TEXT NOT NULL,
+                range INTEGER NOT NULL,
+                level INTEGER NOT NULL,
+                damage_type TEXT
+            )
+        """)
+
         self.conn.commit()
 
     def add_dnd_class(self,  name: str, primary_stat: str, health: int, abilities: list, cantrips: list,
-                      skill_proficiencies: list, weapon_proficiencies: list, max_cantrips: int,
+                      spells: list, skill_proficiencies: list, weapon_proficiencies: list, max_cantrips: int,
                       max_spells: int, spell_slots: int, spellcaster: bool):
         
         abilities_str = ", ".join(abilities) if abilities else ""
         cantrips_str = ", ".join(cantrips) if cantrips else ""
+        spells_str = ", ".join(spells) if spells else ""
         skill_proficiencies_str = ", ".join(skill_proficiencies) if skill_proficiencies else ""
         weapon_proficiencies_str = ", ".join(weapon_proficiencies) if weapon_proficiencies else ""
         spellcaster_int = 1 if spellcaster else 0
 
         self.cursor.execute("""
             INSERT OR IGNORE INTO dnd_classes (name, primary_stat, health, 
-                            abilities, cantrips, skill_proficiencies, 
+                            abilities, cantrips, spells, skill_proficiencies, 
                             weapon_proficiencies, max_cantrips, max_spells, 
-                            spell_slots, spellcaster)
+                            spell_slots, spellcaster, spells)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (name, primary_stat, health, 
-              abilities_str, cantrips_str, skill_proficiencies_str, 
+              abilities_str, cantrips_str, spells_str, skill_proficiencies_str, 
               weapon_proficiencies_str, max_cantrips, max_spells, spell_slots, 
               spellcaster_int))
         self.conn.commit()
@@ -74,6 +88,22 @@ class DatabaseManager:
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """, (name, spell_type, spell_range, level, dice_roll, damage_type, area, use_count))
         self.conn.commit()
+
+
+
+
+
+    def add_weapon(self, name: str, primary_stat: str, dice_roll: str, range: int, level: int, 
+                   damage_type: str = None):
+        self.cursor.execute("""
+            INSERT OR IGNORE INTO weapons (name, primary_stat, dice_roll, range, level, damage_type)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (name, primary_stat, dice_roll, range, level, damage_type))
+        self.conn.commit()
+
+
+
+
 
     def get_dnd_class(self, name: str) -> dict:
         self.cursor.execute("SELECT * FROM dnd_classes WHERE name = ? COLLATE NOCASE", (name,))
@@ -93,6 +123,16 @@ class DatabaseManager:
     
     def get_spell(self, name: str) -> dict:
         self.cursor.execute("SELECT * FROM spells WHERE name = ? COLLATE NOCASE", (name,))
+        row = self.cursor.fetchone()
+        
+        if not row:
+            return None
+
+        data = dict(row)
+        return data
+
+    def get_weapon(self, name: str) -> dict:
+        self.cursor.execute("SELECT * FROM weapons WHERE name = ? COLLATE NOCASE", (name,))
         row = self.cursor.fetchone()
         
         if not row:
