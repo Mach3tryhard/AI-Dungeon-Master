@@ -9,7 +9,7 @@ import sqlite3
 class DatabaseManager:
     def __init__(self, db_name="dnd_database.db"):
         self.db_name = db_name
-        self.conn = sqlite3.connect(self.db_name)
+        self.conn = sqlite3.connect(self.db_name, check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
         self.cursor = self.conn.cursor()
 

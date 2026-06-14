@@ -7,16 +7,10 @@ from weapon_class import Weapon
 from inventory_class import Inventory
 from database.db_manager import *
 from database.init_db import *
+from database.db_manager import DatabaseManager
+import json 
 
 import random
-
-#TODO MATEI:
-# cand creezi un NPC/inamic, vei fi nevoit sa apelezi functia GET pentru fiecare,
-# care iti da doar parte din date. va trebui sa faci ca functia care iti creaza
-# NPC ul sa creeze atribuie date default pentru tot ce e obligatoriu din ENTITY
-# in plus, s-ar putea sa fie nevoie de un switch case ca sa atribuie clasa
-# corecta entitatii in functie de clasa (format text) pe care o citeste din db
-# eu as crea o functie generate_entity() si o apelezi si pt inamici si pt NPC
 
 class GameEngine:
     def __init__(self):
@@ -24,6 +18,8 @@ class GameEngine:
         self.game_time_seconds = 0
         self.chat_log = []
         self.in_combat = False
+
+        self.db = DatabaseManager("dnd_database.db")
 
         self.personalities = ["sarcastic", "mean", "preppy", "clumsy", "sleepy", "scared", "brave", "lazy", "smart"]
         self.jobs = ["bartender", "knight", "blacksmith", "ranger", "wizard", "chef", 
@@ -103,14 +99,15 @@ class GameEngine:
             if getattr(n, 'location', '') == self.current_location_name
         }
 
-    def process_action(self, intent: dict,ai_dm=None) -> str:
+    def process_action(self, intent: dict, player_text: str = "", ai_dm=None) -> str:
         action = intent.get("action")
         target_name = intent.get("target")
 
         action_map = {
             "attack": lambda: self.action_attack(target_name),
-            "talk": lambda: self.action_talk(target_name,ai_dm),
-            "travel": lambda: self.action_travel(target_name,ai_dm),
+            "talk": lambda: self.action_talk(target_name, player_text, ai_dm),
+            "travel": lambda: self.action_travel(target_name, random.randint(1, 20)),
+            "look": lambda: self.action_look(),
         }
 
         if action in action_map:
@@ -164,74 +161,169 @@ class GameEngine:
         self.needs_map_update=True
         return result
 
-    def action_talk(self, target_name: str, ai_dm=None) -> str:
+    def action_talk(self, target_name: str, player_text: str, ai_dm=None) -> str:
         if not target_name:
             return "Player said something to the open air."
             
-        target = self.local_npcs.get(target_name.lower()) or self.local_enemies.get(target_name.lower())
+        target = self.local_npcs.get(target_name.lower())
         
         if not target:
+            enemy_target = self.local_enemies.get(target_name.lower())
+            if enemy_target:
+                return f"{enemy_target.name} is hostile and doesn't want to talk! It only wants to fight."
             return f"Player tried to talk to {target_name}, but they aren't here."
             
         reached_target, move_narrative = self.auto_approach(target)
         if not reached_target:
             return f"Talk failed. {move_narrative}"
                 
-        return move_narrative + f"Player said something to {target.name}. The NPC listened."
+        alive_enemies = [e for e in self.local_enemies.values() if getattr(e, 'health', 0) > 0]
+        enemies_count = len(alive_enemies)
+        
+        npc_class = getattr(target.dnd_class, 'name', 'villager') if hasattr(target, 'dnd_class') else "villager"
+
+        if enemies_count > 0:
+            quest_context = f"Mai sunt {enemies_count} inamici în zonă. Roagă jucătorul să îi omoare pe toți și promite-i o recompensă din partea ta."
+        else:
+            if not getattr(target, 'quest_completed', False):
+                reward = 100
+                self.player.inventory.add_gold(reward)
+                self.needs_equipment_update = True
+                target.quest_completed = True
+                quest_context = f"Harta este curățată! Jucătorul a ucis toți inamicii. Mulțumește-i profund și oferă-i {reward} monede de aur (Gold) drept recompensă."
+            else:
+                quest_context = "Inamicii sunt morți, iar tu i-ai dat deja recompensa jucătorului. Acum doar mulțumește-i din nou pentru că a salvat regiunea."
+
+        if ai_dm:
+            dialogue = ai_dm.generate_dialogue(
+                npc_name=target.name,
+                npc_class=npc_class,
+                location_name=self.current_location_name,
+                player_text=player_text,
+                quest_state=quest_context
+            )
+            return move_narrative + "\n\n" + dialogue
+        else:
+            return move_narrative + f"Player talked to {target.name}."
     
-    def action_travel(self, target_name: str, ai_dm=None) -> str:
-        if not target_name:
-            return "Player tried to travel, but didn't specify where."
+    def action_travel(self, target_name: str, luck_roll: int) -> str:
+        if not target_name: return "Travel failed: No destination."
             
         target_key = target_name.lower()
 
         if target_key in self.visited_locations:
-            self.add_story(f"*(Traveling back to {target_name}...)*")
-            
             loc_data = self.visited_locations[target_key]
             self.current_location_name = loc_data["name"]
-            
             self.map_class = MapClass(matrix=loc_data["matrix"])
-            self.player.location = self.current_location_name
-            self.player.position = (1, 1)
-            
-            self.load_local_entities() 
-            self.needs_map_update = True
-            return f"Player returned to {self.current_location_name}."
-
+            self.player.position = loc_data.get("player_position", (1, 1))
         else:
-            if not ai_dm:
-                return "Cannot travel. AI is not linked."
-
-            self.add_story(f"*(Exploring new location: {target_name}...)*")
-            
-            new_world = ai_dm.generate_location(target_name)
-            self.current_location_name = new_world.get("name", target_name)
-            
-            ai_matrix = new_world.get("matrix")
-            if not ai_matrix:
-                ai_matrix = [["1" if i==0 or i==9 or j==0 or j==9 else "0" for j in range(10)] for i in range(10)]
+            db_data = self.db_fetch_location_data(target_name)
+            self.current_location_name = db_data["name"]
+            ai_matrix = db_data["matrix"]
+            p_pos = db_data["player_position"]
 
             self.visited_locations[self.current_location_name.lower()] = {
                 "name": self.current_location_name,
-                "matrix": ai_matrix
+                "matrix": ai_matrix,
+                "player_position": p_pos
             }
-            
             self.map_class = MapClass(matrix=ai_matrix)
-            self.player.location = self.current_location_name
-            self.player.position = (1, 1)
 
-            h, w = self.map_class.size
-            for i, edata in enumerate(new_world.get("enemies", [])):
-                e_class = DNDClass(name="Monster", primary_stat="STR", health=edata.get("health", 15))
-                en = Entity(dnd_class=e_class, name=f"{edata.get('name', 'Monster')} {i+1}", stats={"STR": 10}, position=(w-2, h-2), location=self.current_location_name)
+            for i, edata in enumerate(db_data.get("enemies", [])):
+                e_class_db = self.db.get_dnd_class(edata["dnd_class"])
+                hp = e_class_db["health"] if e_class_db else 15
+                e_class = DNDClass(name=edata["dnd_class"], primary_stat="STR", health=hp)
+                
+                pos = db_data["enemy_positions"][i]
+                en = Entity(dnd_class=e_class, name=edata["name"], stats={"STR": 10, "DEX": 10}, 
+                            position=pos, location=self.current_location_name)
                 self.global_enemies.append(en)
 
-            for i, ndata in enumerate(new_world.get("npcs", [])):
-                n_class = DNDClass(name="Civilian", primary_stat="CHA", health=5)
-                npc = Entity(dnd_class=n_class, name=ndata.get('name', f"Villager {i+1}"), stats={"CHA": 10}, position=(2, 2), location=self.current_location_name)
+            for i, ndata in enumerate(db_data.get("npcs", [])):
+                n_class_db = self.db.get_dnd_class(ndata["dnd_class"])
+                hp = n_class_db["health"] if n_class_db else 10
+                n_class = DNDClass(name=ndata["dnd_class"], primary_stat="CHA", health=hp)
+                
+                pos = db_data["npc_positions"][i]
+                npc = Entity(dnd_class=n_class, name=ndata["name"], stats={"CHA": 12, "DEX": 10}, 
+                             position=pos, location=self.current_location_name)
                 self.global_npcs.append(npc)
+                
+            self.player.position = p_pos
 
-            self.load_local_entities()
-            self.needs_map_update = True
-            return f"Player discovered {self.current_location_name}. {new_world.get('description', '')}"
+        self.player.location = self.current_location_name
+        self.load_local_entities() 
+        self.needs_map_update = True
+        
+        return f"Player rolled a {luck_roll} for travel luck. Entered {self.current_location_name}."
+        
+    def db_fetch_location_data(self, location_name: str) -> dict:
+        
+        map_db = self.db.get_map()
+        if map_db and map_db.get("layout"):
+            try:
+                matrix = json.loads(map_db["layout"]) 
+            except Exception:
+                matrix = [["1" if i==0 or i==9 or j==0 or j==9 else "0" for j in range(10)] for i in range(10)]
+        else:
+            matrix = [["1" if i==0 or i==9 or j==0 or j==9 else "0" for j in range(10)] for i in range(10)]
+
+        enemy_positions = []
+        npc_positions = []
+        player_position = (1, 1) 
+        
+        base_matrix = []
+        for y, row in enumerate(matrix):
+            base_row = []
+            for x, cell in enumerate(row):
+                if cell == 'E':
+                    enemy_positions.append((x, y))
+                    base_row.append('0')
+                elif cell == 'N':
+                    npc_positions.append((x, y))
+                    base_row.append('0')
+                elif cell == 'P':
+                    player_position = (x, y)
+                    base_row.append('0')
+                else:
+                    base_row.append(cell)
+            base_matrix.append(base_row)
+
+        enemies_data = []
+        for _ in range(len(enemy_positions)):
+            e_data = self.db.get_random_enemy()
+            if e_data:
+                enemies_data.append(e_data)
+
+        npcs_data = []
+        for _ in range(len(npc_positions)):
+            n_data = self.db.get_random_npc()
+            if n_data:
+                npcs_data.append(n_data)
+
+        return {
+            "name": location_name,
+            "matrix": base_matrix,
+            "enemy_positions": enemy_positions,
+            "npc_positions": npc_positions,
+            "player_position": player_position,
+            "enemies": enemies_data,
+            "npcs": npcs_data
+        }
+    def action_look(self) -> str:
+        alive_enemies = [e.name for e in self.local_enemies.values() if getattr(e, 'health', 0) > 0]
+        npcs = [n.name for n in self.local_npcs.values()]
+        
+        result = f"Scanning '{self.current_location_name}': "
+        
+        if alive_enemies:
+            result += f"Hostile threats detected -> {', '.join(alive_enemies)}. "
+        else:
+            result += "No hostile threats detected. "
+            
+        if npcs:
+            result += f"NPCs present -> {', '.join(npcs)}."
+        else:
+            result += "No friendly faces around."
+            
+        return result

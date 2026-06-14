@@ -240,7 +240,7 @@ class DNDGameApp(App):
     @work(thread=True)
     def process_turn_background(self, player_text: str) -> None:
         intent = self.ai_dm.parse_intent(player_text)
-        engine_result = self.engine.process_action(intent,ai_dm=self.ai_dm)
+        engine_result = self.engine.process_action(intent, player_text=player_text, ai_dm=self.ai_dm)
         narrative = self.ai_dm.narrate_outcome(player_text, engine_result)
         
         self.app.call_from_thread(self.finalize_turn, narrative)
