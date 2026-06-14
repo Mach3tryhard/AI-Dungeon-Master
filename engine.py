@@ -5,7 +5,18 @@ from map_class import MapClass
 from utils import Dice
 from weapon_class import Weapon
 from inventory_class import Inventory
+from database.db_manager import *
+from database.init_db import *
+
 import random
+
+#TODO MATEI:
+# cand creezi un NPC/inamic, vei fi nevoit sa apelezi functia GET pentru fiecare,
+# care iti da doar parte din date. va trebui sa faci ca functia care iti creaza
+# NPC ul sa creeze atribuie date default pentru tot ce e obligatoriu din ENTITY
+# in plus, s-ar putea sa fie nevoie de un switch case ca sa atribuie clasa
+# corecta entitatii in functie de clasa (format text) pe care o citeste din db
+# eu as crea o functie generate_entity() si o apelezi si pt inamici si pt NPC
 
 class GameEngine:
     def __init__(self):
@@ -14,13 +25,18 @@ class GameEngine:
         self.chat_log = []
         self.in_combat = False
 
+        self.personalities = ["sarcastic", "mean", "preppy", "clumsy", "sleepy", "scared", "brave", "lazy", "smart"]
+        self.jobs = ["bartender", "knight", "blacksmith", "ranger", "wizard", "chef", 
+                     "royalty", "king", "paladin", "priest", "hero", "painter",
+                     "historian"]
         self.map_class = MapClass((20,20))
         self.current_location_name = "forest"
         
         self.visited_locations = {} 
         self.visited_locations[self.current_location_name] = {
             "name": self.current_location_name,
-            "matrix": self.map_class.base_map
+            "matrix": self.map_class.base_map,
+            # "enmies": self.local_enemies
         }
 
         self.needs_story_update = False
@@ -42,6 +58,8 @@ class GameEngine:
             level=1, 
             range=1
         )
+
+        init_database()
         
         inventory_default = Inventory(items=[iron_sword])
 
@@ -66,6 +84,7 @@ class GameEngine:
         self.global_npcs.append(mayor)
 
         self.load_local_entities()
+
 
     def add_story(self, text: str):
         self.story_log.append(text)
