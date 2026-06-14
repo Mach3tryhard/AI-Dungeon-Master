@@ -18,6 +18,7 @@ from ai_dm import AIDungeonMaster
 
 from map_screen import MapScreen
 from sheet import CharacterSheetScreen
+from assistant_screen import AssistantScreen
 
 ASCII_WIZARD = """
           /\ 
@@ -132,6 +133,7 @@ class DNDGameApp(App):
         ("ctrl+s", "show_sheet", "Open Character Sheet"),
         ("ctrl+o", "show_map", "Open Map"),
         ("ctrl+r", "roll_test", "Test Roll"), 
+        ("ctrl+g", "show_guide", "Open Guide"),
     ]
 
     def compose(self) -> ComposeResult:
@@ -274,6 +276,9 @@ class DNDGameApp(App):
     def action_show_map(self) -> None:
         if not isinstance(self.screen, MapScreen):
             self.push_screen(MapScreen())
+    def action_show_guide(self) -> None:
+        if not isinstance(self.screen, AssistantScreen):
+            self.push_screen(AssistantScreen())
 
 if __name__ == "__main__":
     subprocess.Popen(["ollama", "serve"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
