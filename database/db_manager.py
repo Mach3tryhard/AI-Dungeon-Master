@@ -1,5 +1,11 @@
 import sqlite3
 
+#TODO:
+# map_class -> ia din baza de date layoutul matrice aleatoriu
+# !location_class -> contine clasa, inamici
+# query pentru harta
+# query pentru inamici random
+# stats random pt NPC
 class DatabaseManager:
     def __init__(self, db_name="dnd_database.db"):
         self.db_name = db_name
@@ -56,6 +62,32 @@ class DatabaseManager:
             )
         """)
 
+        self.cursor.execute("""
+            CREATE TABLE IF NOT EXISTS enemies (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                creature TEXT NOT NULL,
+                dnd_class TEXT NOT NULL
+            )
+        """)
+
+        self.cursor.execute("""
+            CREATE TABLE IF NOT EXISTS maps (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                layout TEXT UNIQUE NOT NULL,
+                size_x INTEGER NOT NULL,
+                size_y INTEGER NOT NULL
+            )
+        """)
+
+        self.cursor.execute("""
+            CREATE TABLE IF NOT EXISTS npcs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                dnd_class TEXT NOT NULL
+            )
+        """)
+
         self.conn.commit()
 
     def add_dnd_class(self,  name: str, primary_stat: str, health: int, abilities: list, cantrips: list,
@@ -73,8 +105,8 @@ class DatabaseManager:
             INSERT OR IGNORE INTO dnd_classes (name, primary_stat, health, 
                             abilities, cantrips, spells, skill_proficiencies, 
                             weapon_proficiencies, max_cantrips, max_spells, 
-                            spell_slots, spellcaster, spells)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            spell_slots, spellcaster)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (name, primary_stat, health, 
               abilities_str, cantrips_str, spells_str, skill_proficiencies_str, 
               weapon_proficiencies_str, max_cantrips, max_spells, spell_slots, 
@@ -90,7 +122,16 @@ class DatabaseManager:
         self.conn.commit()
 
 
+    def add_map(self, layout: str, size_x: int, size_y: int):
+    
 
+        self.cursor.execute("""
+            INSERT OR IGNORE INTO maps
+            (layout, size_x, size_y)
+            VALUES ( ?, ?, ?)
+        """, (layout, size_x, size_y))
+
+        self.conn.commit()
 
 
     def add_weapon(self, name: str, primary_stat: str, dice_roll: str, range: int, level: int, 
@@ -101,7 +142,23 @@ class DatabaseManager:
         """, (name, primary_stat, dice_roll, range, level, damage_type))
         self.conn.commit()
 
+    def add_enemy(self, name: str, creature: str, dnd_class: str):
+        self.cursor.execute("""
+            INSERT OR IGNORE INTO enemies
+            (name, creature, dnd_class)
+            VALUES (?, ?, ?)
+        """, (name, creature, dnd_class))
 
+        self.conn.commit()
+
+    def add_npc(self, name: str, dnd_class: str):
+        self.cursor.execute("""
+            INSERT OR IGNORE INTO npcs
+            (name, dnd_class)
+            VALUES (?, ?)
+        """, (name, dnd_class))
+
+        self.conn.commit()
 
 
 
@@ -140,6 +197,89 @@ class DatabaseManager:
 
         data = dict(row)
         return data
+    
+    def get_map(self) -> dict:
+        self.cursor.execute(
+            "SELECT * FROM maps ORDER BY RANDOM() LIMIT 1"
+        )
+        row = self.cursor.fetchone()
+        if not row:
+            return None
 
+        data = dict(row)
+
+        return data
+    
+    def get_enemy_by_name(self, name: str) -> dict:
+        self.cursor.execute(
+            "SELECT * FROM enemies WHERE creature = ? COLLATE NOCASE",
+            (name,)
+        )
+
+        row = self.cursor.fetchone()
+
+        if not row:
+            return None
+
+        data = dict(row)
+
+        return data
+    
+    def get_enemies_by_creature(self, creature: str) -> list[dict]:
+        self.cursor.execute(
+            "SELECT * FROM enemies WHERE creature = ? COLLATE NOCASE",
+            (creature,)
+        )
+
+        rows = self.cursor.fetchall()
+
+        if not rows:
+            return []
+
+        return [dict(row) for row in rows]
+    
+    def get_random_enemy_by_creature(self, creature: str) -> dict:
+        self.cursor.execute(
+            """
+            SELECT *
+            FROM enemies
+            WHERE creature = ? COLLATE NOCASE
+            ORDER BY RANDOM()
+            LIMIT 1
+            """,
+            (creature,)
+        )
+
+        row = self.cursor.fetchone()
+
+        if not row:
+            return None
+
+        return dict(row)
+    
+    def get_random_npc(self) -> dict:
+        self.cursor.execute(
+            "SELECT * FROM npcs ORDER BY RANDOM() LIMIT 1"
+        )
+
+        row = self.cursor.fetchone()
+
+        if not row:
+            return None
+
+        return dict(row)
+
+    def get_random_enemy(self) -> dict:
+        self.cursor.execute(
+            "SELECT * FROM enemies ORDER BY RANDOM() LIMIT 1"
+        )
+
+        row = self.cursor.fetchone()
+
+        if not row:
+            return None
+
+        return dict(row)
+    
     def close(self):
         self.conn.close()
