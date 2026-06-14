@@ -13,6 +13,7 @@ class CharacterSheetScreen(Screen):
         ("ctrl+r", "do_nothing",False), 
         ("ctrl+s", "do_nothing",False),
         ("ctrl+o", "do_nothing",False),
+        ("ctrl+g", "do_nothing", False),
     ]
 
     def action_close_sheet(self) -> None:
