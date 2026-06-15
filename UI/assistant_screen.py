@@ -13,7 +13,6 @@ class AssistantScreen(Screen):
 
     BINDINGS = [
         ("escape", "close_assistant", "Back to Main"),
-        ("ctrl+r", "do_nothing", False), 
         ("ctrl+s", "do_nothing", False),
         ("ctrl+o", "do_nothing", False),
         ("ctrl+g", "do_nothing", False),

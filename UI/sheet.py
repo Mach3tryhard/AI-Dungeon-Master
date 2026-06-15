@@ -10,7 +10,6 @@ class CharacterSheetScreen(Screen):
     
     BINDINGS = [
         ("escape", "close_sheet", "Back to Main"),
-        ("ctrl+r", "do_nothing",False), 
         ("ctrl+s", "do_nothing",False),
         ("ctrl+o", "do_nothing",False),
         ("ctrl+g", "do_nothing", False),
