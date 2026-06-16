@@ -5,12 +5,12 @@
 Aplicația integrează cu succes doi agenți AI distincți, rulați complet local folosind Ollama, modelul Llama 3. 
 
 1. Agentul "AI Dungeon Master" (`ai_dm.py`)
-   - Rol: Gestionează narațiunea interactivă, interacțiunile cu lumea și decodificarea intențiilor.
-   - Funcționalitate: Traduce input-ul natural al jucătorului în comenzi JSON structurate pentru motorul jocului. După ce motorul calculează determinist rezultatul, agentul preia datele matematice și le dă o narațiune dinamică. De asemenea, generează replici contextuale pentru NPC-uri, reacționând la starea mediului înconjurător.
+- Rol: Gestionează narațiunea interactivă, interacțiunile cu lumea și decodificarea intențiilor.
+- Funcționalitate: Traduce input-ul natural al jucătorului în comenzi JSON structurate pentru motorul jocului. După ce motorul calculează determinist rezultatul, agentul preia datele matematice și le dă o narațiune dinamică. De asemenea, generează replici contextuale pentru NPC-uri, reacționând la starea mediului înconjurător.
 
 2. Agentul Asistent "Player Guide" (`ai_assistant.py`)
-   - Rol: Funcționează ca un manual de instrucțiuni interactiv și ghid tehnic in-game.
-   - Funcționalitate: Este un agent code-aware. El poate accesa și citi direct fișierele sursă `.py` ale proiectului pentru a explica jucătorului regulile exacte ale jocului. Această abordare tehnică previne halucinațiile modelului, asigurând că răspunsurile sunt întotdeauna bazate pe mecanicile reale implementate în cod.
+- Rol: Funcționează ca un manual de instrucțiuni interactiv și ghid tehnic in-game.
+- Funcționalitate: Este un agent code-aware. El poate accesa și citi direct fișierele sursă `.py` ale proiectului pentru a explica jucătorului regulile exacte ale jocului. Această abordare tehnică previne halucinațiile modelului, asigurând că răspunsurile sunt întotdeauna bazate pe mecanicile reale implementate în cod.
 
 ## Specificații
 
@@ -133,31 +133,32 @@ deactivate AIDM
 TUI->>TUI: update_story_display()
 ```
 
-### Source control cu git
+## Source control cu git
 - Pentru a realiza proiectul, ambii studenti au creat noi branch-uri si dat merge acestora 
 - Ambii studenti au participat in mod activ la realizarea proiectului, de la alegerea temei si tehnologiilor folosite pana la 
 scrisul de cod si rezolvatul de bug-rui
 - Ambii studenti au peste 5 commit-uri
 
-### Teste automate
+## Teste automate
 Este integrat un pipeline GitHub Actions care rulează o suită de teste automate (folosind framework-ul `pytest`) la fiecare *push*. Aceste teste validează logica de bază a motorului de joc (calculul de HP, generarea instanțelor, răspunsul acțiunilor) înainte ca executabilul să fie compilat.
 
-### Verificări Formale
+## Verificări Formale
 Arhitectura aplică verificări statice ușoare. Se utilizează *Type Hinting* strict pentru metodele critice (ex: `target_name: str`, `luck_roll: int` în `engine.py`) pentru a preveni propagarea erorilor de tip la runtime. De asemenea, motorul menține invarianți matematici clari (ex: HP-ul entităților nu poate fi evalut sub 0, zarurile d20 sunt mărginite strict la intervalul [1, 20]), garantând coerența stării sistemului indiferent de input-ul generat de AI.
 
-### Raportare bug
+## Raportare bug
 O eroare logică legată de mecanica jocului a fost depistată și documentată oficial pe GitHub. Issue-ul conține descrierea problemei.
 Soluția a fost implementată pe un branch separat și izolată de restul codului. Ulterior, corecția a fost revizuită și integrată în ramura principală.
 [Issue]([https://github.com](https://github.com/Mach3tryhard/AI-Dungeon-Master/issues/30))
 
-### Design Patterns
+## Design Patterns
 Proiectul utilizeaza Design Pattern-ul Model - View - Controller.
 
-### Instrumente AI folosite
+## Folosirea instrumentelor AI
 - Arhitectură: AI-ul a asistat la implementarea design-ului **MVP**, decuplând logica deterministă (`engine.py`) de serviciul narativ (`ai_dm.py`). Acest lucru a asigurat că starea jocului (HP, datele din SQLite) nu poate fi coruptă de eventuale "halucinații" ale modelului.
 - Implementare UI: Generarea rapidă de cod *boilerplate* pentru componentele interfeței (ferestre modale, layout-uri, animația zarului) și depanarea stilizărilor CSS în terminal.
 - DevOps & CI/CD: Diagnosticarea erorilor de sintaxă în scripturile PowerShell din GitHub Actions și rafinarea comenzilor PyInstaller (`--add-data`) pentru a include corect resursele statice în executabil.
 - Documentație & UML: Traducerea logicii scrise în sintaxă `Mermaid.js` pentru generarea rapidă a diagramelor de componente, secvență și clase UML.
+- Acest markdown a fost generat inițial cu AI și corectat de către noi.
 
 # AI Dungeon Master: Terminal RPG
 
