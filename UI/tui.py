@@ -62,7 +62,8 @@ class TalkModal(ModalScreen[bool]):
 
 
 class TravelModal(ModalScreen[bool]):
-    CSS = "TravelModal { align: center middle; background: $background 50%; } #travel-dialog { width: 45; height: auto; padding: 1; border: thick $success; background: $surface; } .travel-title { text-style: bold; color: $success; margin-bottom: 1; } .dialog-buttons { height: auto; align: center middle; } .modal-btn { margin: 1; }"
+    CSS = "TravelModal { align: cente
+    r middle; background: $background 50%; } #travel-dialog { width: 45; height: auto; padding: 1; border: thick $success; background: $surface; } .travel-title { text-style: bold; color: $success; margin-bottom: 1; } .dialog-buttons { height: auto; align: center middle; } .modal-btn { margin: 1; }"
     
     def __init__(self, destination: str, **kwargs):
         self.destination = destination or "Unknown Lands"
