@@ -2,32 +2,129 @@
 
 A highly immersive, text-based Dungeons & Dragons experience built entirely in Python. This project bridges the gap between traditional deterministic game engines and modern Generative AI, featuring a fully functional Terminal User Interface (TUI) and an AI Dungeon Master that dynamically narrates your actions, controls NPCs, and acts as a code-aware player guide.
 
-## Procesul de dezvoltare
+# Procesul de dezvoltare
 
-### Specificații
+## Specificații
 
-1. Viziunea Proiectului
-Un joc de rol (RPG) text-based în terminal, care îmbină logica matematică a unui motor D&D (HP, zaruri, statistici) cu narațiunea generată dinamic de un LLM rulat local.
+    1. Viziunea Proiectului
+    Un joc de rol (RPG) text-based în terminal, care îmbină logica matematică a unui motor D&D (HP, zaruri, statistici) cu narațiunea generată dinamic de un LLM rulat local.
 
-2. Cerințe Funcționale
-* **Character Creator:** Interfață pentru definirea personajului (Nume, Clasă, Rasă, Background) și alocarea automată a atributelor (HP, STR, etc.).
-* **Turn-Based Combat:** Sistem automatizat de atac/apărare, care calculează determinist rezultatul (zaruri, modificatori) și include contra-atacul inamicului în aceeași rundă.
-* **Dialog Dinamic (AI):** Sistem de interacțiune cu NPC-urile, unde AI-ul generează replici conștiente de contextul jocului (inamici în viață, quest-uri).
-* **Player Guide "Code-Aware":** Asistent tehnic in-game capabil să citească fișierele `.py` pentru a ghida jucătorul bazat strict pe mecanicile reale implementate.
-* **TUI (Terminal User Interface):** Interfață vizuală interactivă (Textual) cu log-uri de poveste, hărți, inventar și ferestre modale pentru confirmări sau "Game Over".
+    2. Cerințe Funcționale
+    * Character Creator: Interfață pentru definirea personajului (Nume, Clasă, Rasă, Background) și alocarea automată a atributelor (HP, STR, etc.).
+    * Turn-Based Combat: Sistem automatizat de atac/apărare, care calculează determinist rezultatul (zaruri, modificatori) și include contra-atacul inamicului în aceeași rundă.
+    * Dialog Dinamic (AI): Sistem de interacțiune cu NPC-urile, unde AI-ul generează replici conștiente de contextul jocului (inamici în viață, quest-uri).
+    * Player Guide "Code-Aware": Asistent tehnic in-game capabil să citească fișierele `.py` pentru a ghida jucătorul bazat strict pe mecanicile reale implementate.
+    * TUI (Terminal User Interface): Interfață vizuală interactivă (Textual) cu log-uri de poveste, hărți, inventar și ferestre modale pentru confirmări sau "Game Over".
 
-3. Cerințe Non-Funcționale
-* **Execuție Locală:** Integrare cu Ollama (ex: Llama 3) pentru confidențialitate totală și costuri zero.
-* **Arhitectură Decuplată:** Separare clară între UI (`tui.py`), logică (`engine.py`) și serviciile AI (`ai_dm.py`).
-* **CI/CD & Portabilitate:** Workflow GitHub Actions pentru testare automată (`pytest`) și compilare într-un singur fișier executabil (`.exe`) folosind PyInstaller.
-* **Procesare Asincronă:** Apelurile către modelul AI nu trebuie să blocheze firul principal de execuție al interfeței grafice.
+    3. Cerințe Non-Funcționale
+    * **Execuție Locală:** Integrare cu Ollama (ex: Llama 3) pentru confidențialitate totală și costuri zero.
+    * **Arhitectură Decuplată:** Separare clară între UI (`tui.py`), logică (`engine.py`) și serviciile AI (`ai_dm.py`).
+    * **CI/CD & Portabilitate:** Workflow GitHub Actions pentru testare automată (`pytest`) și compilare într-un singur fișier executabil (`.exe`) folosind PyInstaller.
+    * **Procesare Asincronă:** Apelurile către modelul AI nu trebuie să blocheze firul principal de execuție al interfeței grafice.
 
-### Backlog-uri
+## Backlog-uri
     - Au fost create folosind JIRA, creand story-uri si task-uri carora le putem da track 
 <img width="1913" height="1015" alt="Screenshot 2026-06-17 010035" src="https://github.com/user-attachments/assets/511e4984-79bd-4f42-9cb0-dad2ba710226" />
 <img width="1567" height="897" alt="Screenshot 2026-06-17 010113" src="https://github.com/user-attachments/assets/bf546bb5-edbb-483e-884c-e8e01a6208bb" />
 <img width="1913" height="1005" alt="Screenshot 2026-06-17 010026" src="https://github.com/user-attachments/assets/9b8258cf-61c1-431e-a919-2912513a4126" />
 
+### Diagrama UML
+
+## Descriere Arhitectura
+
+### Diagrama de Arhitectură a Componentelor
+```mermaid
+graph TD
+subgraph UI [View - Interfața Utilizator]
+TUI[tui.py / Textual App]
+Modals[Ferestre Modale]
+end
+
+subgraph Services [Presenter & Servicii AI]
+    AIDM[ai_dm.py / Prompt Builder]
+    Ollama((LLM Local: Ollama / Llama 3))
+end
+
+subgraph Core [Model - Logica de Business]
+    Engine[engine.py / GameEngine]
+    Entities[Clase: Entity, Map, DNDClass]
+    DB[(SQLite Database)]
+end
+
+TUI -- "Trimite Acțiune" --> Engine
+Engine -- "Actualizează Stare" --> Entities
+Entities -- "Extrage Date" --> DB
+
+Engine -- "Rezultat Matematic" --> TUI
+TUI -- "Rezultat Brut" --> AIDM
+AIDM -- "Prompt" --> Ollama
+Ollama -- "Răspuns Narativ" --> AIDM
+AIDM -- "Text Formatat" --> TUI
+```
+
+Diagrama de Clase UML
+```mermaid
+classDiagram
+class GameEngine {
++list story_log
++bool in_combat
++bool is_game_over
++Entity player
++MapClass map_class
++process_action(intent, player_text) tuple
++action_attack(target, luck_roll) str
++tick() void
+}
+
+class Entity {
+    +str name
+    +tuple position
+    +int health
+    +dict stats
+    +take_damage(amount, type) void
+}
+
+class DNDClass {
+    +str name
+    +str primary_stat
+    +int health
+}
+
+class Inventory {
+    +int gold
+    +list items
+}
+
+GameEngine "1" *-- "1..*" Entity : gestionează
+Entity "1" *-- "1" DNDClass : are o
+Entity "1" *-- "1" Inventory : deține
+```
+
+Workflow Combat (Sequence Diagram)
+```mermaid
+sequenceDiagram
+actor Jucător
+participant TUI as tui.py (View)
+participant Engine as engine.py (Model)
+participant AIDM as ai_dm.py (AI)
+
+Jucător->>TUI: Confirmă Atac din Modal
+TUI->>Engine: process_action(attack, goblin)
+activate Engine
+Engine->>Engine: Zar d20 + calcul damage jucător
+Engine->>Engine: Calcul contra-atac inamic
+Engine-->>TUI: Returnează string matematic
+deactivate Engine
+
+TUI->>AIDM: narrate_outcome(string_matematic)
+activate AIDM
+AIDM->>AIDM: Construiește Prompt System
+AIDM-->>TUI: Returnează povestea generată
+deactivate AIDM
+
+TUI->>TUI: update_story_display()
+```
+```
 
 ### Source control cu git
     - Pentru a realiza proiectul, ambii studenti au creat noi branch-uri si dat merge acestora 
@@ -51,45 +148,7 @@ Un joc de rol (RPG) text-based în terminal, care îmbină logica matematică a 
     - descoperirea bug-urilor in mod eficient
 
 
-## Descriere Arhitectura
 
-### Diagrama UML
-```mermaid
-graph TD
-    %% Componentele UI
-    subgraph View/Controller [Interfața Utilizator - tui.py]
-        UI[DNDGameApp]
-        Modals[Screens & Modals]
-        Animation[TumblingD20]
-    end
-
-    %% Nucleul Jocului
-    subgraph Model [Logica de Joc - engine.py]
-        Engine[GameEngine]
-        Entities[Entity, Map, Inventory]
-        Presets[presets.py]
-    end
-
-    %% Servicii Externe
-    subgraph Services [Servicii Externe]
-        AIDM[ai_dm.py / PlayerGuideAssistant]
-        DB[DatabaseManager - SQLite]
-        Ollama((Ollama Local LLM))
-    end
-
-    %% Conexiuni
-    UI -- "1. Trimite Input (Action/Target)" --> Engine
-    UI -- "Actualizează / Gestionează" --> Modals
-    UI -- "Declanșează" --> Animation
-    Engine -- "Actualizează Stări (Flags)" --> UI
-    
-    Engine -- "2. Solicită Date/Inamici" --> DB
-    Engine -- "Încarcă Stats" --> Presets
-    Engine -- "Gestionează Instanțe" --> Entities
-    
-    UI -- "3. Solicită Narațiune/Ghid" --> AIDM
-    AIDM -- "4. Request/Response" --> Ollama
-```
 
 ## Core Features
 
