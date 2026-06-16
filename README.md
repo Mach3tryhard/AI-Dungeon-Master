@@ -1,4 +1,3 @@
-# AI-Dungeon-Master
 # AI Dungeon Master: Terminal RPG
 
 A highly immersive, text-based Dungeons & Dragons experience built entirely in Python. This project bridges the gap between traditional deterministic game engines and modern Generative AI, featuring a fully functional Terminal User Interface (TUI) and an AI Dungeon Master that dynamically narrates your actions, controls NPCs, and acts as a code-aware player guide.
