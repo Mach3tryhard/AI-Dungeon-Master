@@ -1,29 +1,37 @@
-# AI Dungeon Master: Terminal RPG
+# Procesul de dezvoltare pentru Proiect
 
-A highly immersive, text-based Dungeons & Dragons experience built entirely in Python. This project bridges the gap between traditional deterministic game engines and modern Generative AI, featuring a fully functional Terminal User Interface (TUI) and an AI Dungeon Master that dynamically narrates your actions, controls NPCs, and acts as a code-aware player guide.
+## Integrarea Agenților AI
 
-# Procesul de dezvoltare
+Aplicația integrează cu succes doi agenți AI distincți, rulați complet local folosind Ollama, modelul Llama 3. 
+
+1. Agentul "AI Dungeon Master" (`ai_dm.py`)
+   - Rol: Gestionează narațiunea interactivă, interacțiunile cu lumea și decodificarea intențiilor.
+   - Funcționalitate: Traduce input-ul natural al jucătorului în comenzi JSON structurate pentru motorul jocului. După ce motorul calculează determinist rezultatul, agentul preia datele matematice și le dă o narațiune dinamică. De asemenea, generează replici contextuale pentru NPC-uri, reacționând la starea mediului înconjurător.
+
+2. Agentul Asistent "Player Guide" (`ai_assistant.py`)
+   - Rol: Funcționează ca un manual de instrucțiuni interactiv și ghid tehnic in-game.
+   - Funcționalitate: Este un agent code-aware. El poate accesa și citi direct fișierele sursă `.py` ale proiectului pentru a explica jucătorului regulile exacte ale jocului. Această abordare tehnică previne halucinațiile modelului, asigurând că răspunsurile sunt întotdeauna bazate pe mecanicile reale implementate în cod.
 
 ## Specificații
 
-    1. Viziunea Proiectului
-    Un joc de rol (RPG) text-based în terminal, care îmbină logica matematică a unui motor D&D (HP, zaruri, statistici) cu narațiunea generată dinamic de un LLM rulat local.
+1. Viziunea Proiectului
+Un RPG text-based în terminal, care îmbină logica matematică a unui motor D&D (HP, zaruri, statistici) cu narațiunea generată dinamic de un LLM rulat local.
 
-    2. Cerințe Funcționale
-    * Character Creator: Interfață pentru definirea personajului (Nume, Clasă, Rasă, Background) și alocarea automată a atributelor (HP, STR, etc.).
-    * Turn-Based Combat: Sistem automatizat de atac/apărare, care calculează determinist rezultatul (zaruri, modificatori) și include contra-atacul inamicului în aceeași rundă.
-    * Dialog Dinamic (AI): Sistem de interacțiune cu NPC-urile, unde AI-ul generează replici conștiente de contextul jocului (inamici în viață, quest-uri).
-    * Player Guide "Code-Aware": Asistent tehnic in-game capabil să citească fișierele `.py` pentru a ghida jucătorul bazat strict pe mecanicile reale implementate.
-    * TUI (Terminal User Interface): Interfață vizuală interactivă (Textual) cu log-uri de poveste, hărți, inventar și ferestre modale pentru confirmări sau "Game Over".
+2. Cerințe Funcționale
+- Character Creator: Interfață pentru definirea personajului (Nume, Clasă, Rasă, Background) și alocarea automată a atributelor (HP, STR, etc.).
+- Turn-Based Combat: Sistem automatizat de atac/apărare, care calculează determinist rezultatul (zaruri, modificatori) și include contra-atacul inamicului în aceeași rundă.
+- Dialog Dinamic (AI): Sistem de interacțiune cu NPC-urile, unde AI-ul generează replici conștiente de contextul jocului (inamici în viață, quest-uri).
+- Player Guide "Code-Aware": Asistent tehnic in-game capabil să citească fișierele `.py` pentru a ghida jucătorul bazat strict pe mecanicile reale implementate.
+- TUI (Terminal User Interface): Interfață vizuală interactivă (Textual) cu log-uri de poveste, hărți, inventar și ferestre modale pentru confirmări sau "Game Over".
 
-    3. Cerințe Non-Funcționale
-    * **Execuție Locală:** Integrare cu Ollama (ex: Llama 3) pentru confidențialitate totală și costuri zero.
-    * **Arhitectură Decuplată:** Separare clară între UI (`tui.py`), logică (`engine.py`) și serviciile AI (`ai_dm.py`).
-    * **CI/CD & Portabilitate:** Workflow GitHub Actions pentru testare automată (`pytest`) și compilare într-un singur fișier executabil (`.exe`) folosind PyInstaller.
-    * **Procesare Asincronă:** Apelurile către modelul AI nu trebuie să blocheze firul principal de execuție al interfeței grafice.
+3. Cerințe Non-Funcționale
+- Execuție Locală: Integrare cu Ollama (ex: Llama 3) pentru confidențialitate totală și costuri zero.
+- Arhitectură Decuplată: Separare clară între UI (`tui.py`), logică (`engine.py`) și serviciile AI (`ai_dm.py`).
+- CI/CD & Portabilitate: Workflow GitHub Actions pentru testare automată (`pytest`) și compilare într-un singur fișier executabil (`.exe`) folosind PyInstaller.
+- Procesare Asincronă: Apelurile către modelul AI nu trebuie să blocheze firul principal de execuție al interfeței grafice.
 
 ## Backlog-uri
-    - Au fost create folosind JIRA, creand story-uri si task-uri carora le putem da track 
+Au fost create folosind JIRA, creand story-uri si task-uri carora le putem da track.
 <img width="1913" height="1015" alt="Screenshot 2026-06-17 010035" src="https://github.com/user-attachments/assets/511e4984-79bd-4f42-9cb0-dad2ba710226" />
 <img width="1567" height="897" alt="Screenshot 2026-06-17 010113" src="https://github.com/user-attachments/assets/bf546bb5-edbb-483e-884c-e8e01a6208bb" />
 <img width="1913" height="1005" alt="Screenshot 2026-06-17 010026" src="https://github.com/user-attachments/assets/9b8258cf-61c1-431e-a919-2912513a4126" />
@@ -62,7 +70,7 @@ Ollama -- "Răspuns Narativ" --> AIDM
 AIDM -- "Text Formatat" --> TUI
 ```
 
-Diagrama de Clase UML
+### Diagrama de Clase UML
 ```mermaid
 classDiagram
 class GameEngine {
@@ -100,7 +108,7 @@ Entity "1" *-- "1" DNDClass : are o
 Entity "1" *-- "1" Inventory : deține
 ```
 
-Workflow Combat (Sequence Diagram)
+### Workflow Combat (Sequence Diagram)
 ```mermaid
 sequenceDiagram
 actor Jucător
@@ -124,31 +132,36 @@ deactivate AIDM
 
 TUI->>TUI: update_story_display()
 ```
-```
 
 ### Source control cu git
-    - Pentru a realiza proiectul, ambii studenti au creat noi branch-uri si dat merge acestora 
-    - Ambii studenti au participat in mod activ la realizarea proiectului, de la alegerea temei si tehnologiilor folosite pana la 
-    scrisul de cod si rezolvatul de bug-rui
-    - Ambii studenti au peste 5 commit-uri
+- Pentru a realiza proiectul, ambii studenti au creat noi branch-uri si dat merge acestora 
+- Ambii studenti au participat in mod activ la realizarea proiectului, de la alegerea temei si tehnologiilor folosite pana la 
+scrisul de cod si rezolvatul de bug-rui
+- Ambii studenti au peste 5 commit-uri
 
 ### Teste automate
-    - TODO
+Este integrat un pipeline GitHub Actions care rulează o suită de teste automate (folosind framework-ul `pytest`) la fiecare *push*. Aceste teste validează logica de bază a motorului de joc (calculul de HP, generarea instanțelor, răspunsul acțiunilor) înainte ca executabilul să fie compilat.
 
-### Raportare Bug-uri
-    - noi am facut asta?
+### Verificări Formale
+Arhitectura aplică verificări statice ușoare. Se utilizează *Type Hinting* strict pentru metodele critice (ex: `target_name: str`, `luck_roll: int` în `engine.py`) pentru a preveni propagarea erorilor de tip la runtime. De asemenea, motorul menține invarianți matematici clari (ex: HP-ul entităților nu poate fi evalut sub 0, zarurile d20 sunt mărginite strict la intervalul [1, 20]), garantând coerența stării sistemului indiferent de input-ul generat de AI.
+
+### Raportare bug
+O eroare logică legată de mecanica jocului a fost depistată și documentată oficial pe GitHub. Issue-ul conține descrierea problemei.
+Soluția a fost implementată pe un branch separat și izolată de restul codului. Ulterior, corecția a fost revizuită și integrată în ramura principală.
+[Issue]([https://github.com](https://github.com/Mach3tryhard/AI-Dungeon-Master/issues/30))
 
 ### Design Patterns
-    - Proiectul utilizeaza Design Pattern-ul Model - View - Controller
+Proiectul utilizeaza Design Pattern-ul Model - View - Controller.
 
 ### Instrumente AI folosite
-    Resurse AI precum Google Gemini si ChatGPT au folosite pentru a:
-    - fluidiza task-uri repetitive sau banale
-    - intelege repede sintaxa/problemele de sintaxa pentru limbaj
-    - descoperirea bug-urilor in mod eficient
+- Arhitectură: AI-ul a asistat la implementarea design-ului **MVP**, decuplând logica deterministă (`engine.py`) de serviciul narativ (`ai_dm.py`). Acest lucru a asigurat că starea jocului (HP, datele din SQLite) nu poate fi coruptă de eventuale "halucinații" ale modelului.
+- Implementare UI: Generarea rapidă de cod *boilerplate* pentru componentele interfeței (ferestre modale, layout-uri, animația zarului) și depanarea stilizărilor CSS în terminal.
+- DevOps & CI/CD: Diagnosticarea erorilor de sintaxă în scripturile PowerShell din GitHub Actions și rafinarea comenzilor PyInstaller (`--add-data`) pentru a include corect resursele statice în executabil.
+- Documentație & UML: Traducerea logicii scrise în sintaxă `Mermaid.js` pentru generarea rapidă a diagramelor de componente, secvență și clase UML.
 
+# AI Dungeon Master: Terminal RPG
 
-
+A highly immersive, text-based Dungeons & Dragons experience built entirely in Python. This project bridges the gap between traditional deterministic game engines and modern Generative AI, featuring a fully functional Terminal User Interface (TUI) and an AI Dungeon Master that dynamically narrates your actions, controls NPCs, and acts as a code-aware player guide.
 
 ## Core Features
 
