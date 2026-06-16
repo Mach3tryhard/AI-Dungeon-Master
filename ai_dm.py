@@ -11,7 +11,7 @@ class AIDungeonMaster:
         prompt = """You are a game engine parser. Extract the user's intent into strict JSON.
         Schema:
         {
-            "action": "attack" | "travel" | "talk" | "look" | "other",
+            "action": "attack" | "travel" | "talk" | "look" | "sleep" | "other",
             "target": "name of entity" or null,
             "direction": "north" | "south" | "east" | "west" or null
         }
@@ -41,7 +41,13 @@ class AIDungeonMaster:
             return f"{npc_name} stares at you in silence. (System Error)"
 
     def narrate_outcome(self, player_text: str, engine_result: str) -> str:
-        prompt = """You are a D&D Dungeon Master. Narrate the outcome of the player's action in 2-3 sentences based exactly on the engine's result. Add descriptive flavor but do not invent mechanics or change the facts."""
+        prompt = """You are a D&D Dungeon Master. Narrate the outcome of the player's action in 2-3 sentences based exactly on the engine's result. Add descriptive flavor but do not invent mechanics or change the facts.
+        CRITICAL RULES FOR COMBAT:
+        1. When evaluating an attack result, you MUST explicitly state the exact numerical damage dealt.
+        2. You MUST explicitly state the exact remaining HP of the target.
+        3. If there is a counter-attack, you MUST explicitly state the damage the player takes and the player's exact remaining HP.
+        4. Do not hide the numbers in flavor text. Embed the raw numbers directly into your narrative.
+        """
         try:
             response = ollama.chat(model=self.model, messages=[
                 {"role": "system", "content": prompt},
