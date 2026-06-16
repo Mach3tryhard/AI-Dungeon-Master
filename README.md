@@ -2,6 +2,33 @@
 
 A highly immersive, text-based Dungeons & Dragons experience built entirely in Python. This project bridges the gap between traditional deterministic game engines and modern Generative AI, featuring a fully functional Terminal User Interface (TUI) and an AI Dungeon Master that dynamically narrates your actions, controls NPCs, and acts as a code-aware player guide.
 
+## Cerinte si rezolvarile lor
+
+### Backlog-uri
+    - Au fost create folosind JIRA, creand story-uri si task-uri carora le putem da track 
+
+### Source control cu git
+    - Pentru a realiza proiectul, ambii studenti au creat noi branch-uri si dat merge acestora 
+    - Ambii studenti au participat in mod activ la realizarea proiectului, de la alegerea temei si tehnologiilor folosite pana la 
+    scrisul de cod si rezolvatul de bug-rui
+    - Ambii studenti au peste 5 commit-uri
+
+### Teste automate
+    - TODO
+
+### Raportare Bug-uri
+    - noi am facut asta?
+
+### Design Patterns
+    - Proiectul utilizeaza Design Pattern-ul Model - View - Controller
+
+### Instrumente AI folosite
+    Resurse AI precum Google Gemini si ChatGPT au folosite pentru a:
+    - fluidiza task-uri repetitive sau banale
+    - intelege repede sintaxa/problemele de sintaxa pentru limbaj
+    - descoperirea bug-urilor in mod eficient
+
+
 ## Descriere Arhitectura
 
 ### Diagrama UML
