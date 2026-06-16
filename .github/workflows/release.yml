@@ -30,14 +30,14 @@ jobs:
 
     - name: Build EXE cu PyInstaller
       run: |
-        pyinstaller --onefile --paths . --add-data "UI\style.tcss;." --add-data "UI\*.tcss;UI" UI/tui.py
+        pyinstaller --onefile --paths . --add-data "UI\style.tcss;." --add-data "UI\*.tcss;UI" --name "DND_Game" --icon "icon.ico" UI/tui.py
       shell: pwsh
 
     - name: Împachetează Executabilul și Codul Sursă (pentru AI)
       run: |
         New-Item -ItemType Directory -Path "DND_Release"
         
-        Copy-Item -Path "dist\tui.exe" -Destination "DND_Release\"
+        Copy-Item -Path "dist\DND_Game.exe" -Destination "DND_Release\"
         
         Copy-Item -Path "UI" -Destination "DND_Release\UI" -Recurse
         if (Test-Path -Path 'tests') { Copy-Item -Path "tests" -Destination "DND_Release\tests" -Recurse }

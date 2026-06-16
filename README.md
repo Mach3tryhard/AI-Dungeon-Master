@@ -58,7 +58,7 @@ python UI/tui.py
 * `presets.py`: Data dictionaries containing class stats, starting equipment, and race bonuses.
 * `.github/workflows/`: Contains the CI/CD configuration for automated smoke testing and executable generation.
 
-## 👨‍💻 Authors
+## Authors
 
 **Matei Sîrghe-Ștefan** 
 **Ștefan Bujor** 
