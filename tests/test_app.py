@@ -6,17 +6,25 @@ sys.path.insert(0, parent_dir)
 
 import pytest
 from UI.tui import DNDGameApp
-from textual.widgets import Label
+from textual.widgets import Label, Input
 
 @pytest.mark.asyncio
-async def test_app_starts_and_shows_creator():
+async def test_full_character_creation_flow():
     app = DNDGameApp()
     
     async with app.run_test() as pilot:
-        assert app.title == "AI DM: Dungeons & Dragons"
-        
-        await pilot.pause(0.1)
 
-        creator_title = app.screen.query_one("#char-creator-title", Label)
+        await pilot.pause(0.1)
         
-        assert "CREATE YOUR CHARACTER" in str(creator_title.render())
+        name_input = app.screen.query_one("#char-name", Input)
+        name_input.value = "TestHero"
+        
+        await pilot.click("#btn-start")
+        
+        await pilot.pause(0.2)
+        
+        chat_panel = app.screen.query_one("#chat-panel")
+        assert "TestHero" in str(chat_panel.render())
+        
+        equip_panel = app.screen.query_one("#weapon-info-panel")
+        assert "Damage:" in str(equip_panel.render())
