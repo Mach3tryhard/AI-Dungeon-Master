@@ -1,7 +1,7 @@
 class Dice:
 
     def roll(self, value: str):
-        sides, count = value.split('d')
+        count, sides = value.split('d')
         sides = int(sides)
         count = int(count)
         import random
