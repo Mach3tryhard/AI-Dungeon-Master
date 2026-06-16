@@ -115,3 +115,34 @@ Footer > .footer--key {
     text-style: bold;
     color: $secondary;
 }
+
+GameOverScreen {
+    align: center top;
+    background: rgba(0, 0, 0, 0.1); 
+}
+
+#game-over-dialog {
+    width: 40;
+    height: auto;
+    padding: 2 4;
+    background: $surface;
+    border: heavy red;
+    align: center middle;
+    margin-top: 4; 
+}
+
+#game-over-title {
+    text-align: center;
+    text-style: bold;
+    color: red;
+    margin-bottom: 1;
+}
+
+#game-over-text {
+    text-align: center;
+    margin-bottom: 2;
+}
+
+#btn-restart, #btn-quit {
+    margin: 1;
+}

@@ -18,6 +18,7 @@ class GameEngine:
         self.game_time_seconds = 0
         self.chat_log = []
         self.in_combat = False
+        self.is_game_over = False
 
         self.db = DatabaseManager("dnd_database.db")
 
@@ -164,6 +165,7 @@ class GameEngine:
             "talk": lambda: self.action_talk(target_name, player_text, luck_roll, ai_dm),
             "travel": lambda: self.action_travel(target_name, luck_roll),
             "look": lambda: self.action_look(luck_roll),
+            "sleep": lambda: self.action_sleep()
         }
 
         if action in action_map:
@@ -232,10 +234,55 @@ class GameEngine:
             result += f"{target.name} died."
         else:
             result += f"{target.name} has {target.health} HP left."
+            
+            if hasattr(target, 'inventory') and target.inventory and target.inventory.items:
+                enemy_weapon = target.inventory.items[0]
+                try:
+                    e_count, e_sides = map(int, enemy_weapon.damage_roll.split('d'))
+                    enemy_dmg = sum(random.randint(1, e_sides) for _ in range(e_count))
+                    e_dmg_type = enemy_weapon.damage_type
+                    e_weapon_name = enemy_weapon.name
+                except Exception:
+                    enemy_dmg = random.randint(1, 4)
+                    e_dmg_type = "bludgeoning"
+                    e_weapon_name = "claws"
+            else:
+                enemy_dmg = random.randint(1, 4)
+                e_dmg_type = "bludgeoning"
+                e_weapon_name = "claws"
+                
+            if hasattr(self.player, 'take_damage'):
+                self.player.take_damage(enemy_dmg, e_dmg_type)
+            else:
+                self.player.health -= enemy_dmg
+                
+            result += f" COUNTER-ATTACK: {target.name} retaliated with {e_weapon_name} dealing {enemy_dmg} {e_dmg_type} damage. "
+            
+            if self.player.health <= 0:
+                result += "Player has suffered a fatal blow and died. "
+                self.is_game_over = True 
+            else:
+                result += f"Player has {self.player.health} HP left. "
         
         self.needs_sheet_update = True 
         self.needs_map_update = True
         return result
+
+    def action_sleep(self) -> str:
+        
+        if hasattr(self.player, 'stats') and "HP" in self.player.stats:
+            max_hp = self.player.stats["HP"]
+        else:
+            max_hp = 12 
+            
+        if getattr(self.player, 'health', 0) >= max_hp:
+            return "Player tried to sleep, but they are already fully rested and at maximum HP."
+
+        self.player.health = max_hp
+        
+        self.needs_sheet_update = True
+        
+        return f"Player took a long rest and slept peacefully. Player's HP is fully restored to {max_hp} HP."
 
     def action_talk(self, target_name: str, player_text: str, luck_roll: int, ai_dm=None) -> str:
         if not target_name: return "Player said something to the open air."

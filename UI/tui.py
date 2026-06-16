@@ -8,7 +8,7 @@ sys.path.append(parent_dir)
 
 from textual import on, work
 from textual.app import App, ComposeResult
-from textual.containers import Container, Grid, ScrollableContainer, Vertical, Horizontal
+from textual.containers import Container, Grid, ScrollableContainer, Vertical, Horizontal, Middle,Center
 from textual.widgets import Header, Footer, Static, Input, Label, Button, Select
 from textual.reactive import reactive
 from textual.screen import ModalScreen, Screen
@@ -20,6 +20,25 @@ import presets
 from UI.map_screen import MapScreen
 from UI.sheet import CharacterSheetScreen
 from UI.assistant_screen import AssistantScreen
+
+class GameOverScreen(ModalScreen[str]):
+
+    def compose(self) -> ComposeResult:
+        with Middle():
+            with Center():
+                with Vertical(id="game-over-dialog"):
+                    yield Label("💀 YOU DIED 💀", id="game-over-title")
+                    yield Label("Your adventure had ended.", id="game-over-text")
+                    
+                    with Center():
+                        yield Button("Restart Game", id="btn-restart", variant="error")
+                        yield Button("Quit to Desktop", id="btn-quit", variant="primary")
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "btn-restart":
+            self.dismiss("restart")
+        elif event.button.id == "btn-quit":
+            self.dismiss("quit")
 
 class AttackModal(ModalScreen[bool]):
     CSS = "AttackModal { align: center middle; background: $background 50%; } #attack-dialog { width: 45; height: auto; padding: 1; border: thick $error; background: $surface; } .attack-title { text-style: bold; color: $error; margin-bottom: 1; } .dialog-buttons { height: auto; align: center middle; } .modal-btn { margin: 1; }"
@@ -72,7 +91,7 @@ class TravelModal(ModalScreen[bool]):
         with Vertical(id="travel-dialog"):
             yield Label("🧭 TRAVEL CONFIRMATION", classes="travel-title")
             yield Label(f"Pack your gear and travel to {self.destination}?")
-            yield Label("[dim]Rolls a d20 to determine travel hazards/luck.[/dim]")
+            yield Label("[dim]Rolls a d20 to determine travel luck.[/dim]")
             with Horizontal(classes="dialog-buttons"):
                 yield Button("Travel", variant="success", id="btn-confirm", classes="modal-btn")
                 yield Button("Stay Here", variant="error", id="btn-cancel", classes="modal-btn")
@@ -89,6 +108,21 @@ class LookModal(ModalScreen[bool]):
             yield Label("👁️ PERCEPTION CHECK", classes="look-title")
             yield Label("Scan your surroundings?")
             yield Label("[dim]Rolls a d20 to determine what you notice.[/dim]")
+            with Horizontal(classes="dialog-buttons"):
+                yield Button("Look", variant="warning", id="btn-confirm", classes="modal-btn")
+                yield Button("Cancel", variant="error", id="btn-cancel", classes="modal-btn")
+                
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        self.dismiss(event.button.id == "btn-confirm")
+
+class SleepModal(ModalScreen[bool]):
+    CSS = "SleepModal { align: center middle; background: $background 50%; } #look-dialog { width: 45; height: auto; padding: 1; border: thick $warning; background: $surface; } .look-title { text-style: bold; color: $warning; margin-bottom: 1; } .dialog-buttons { height: auto; align: center middle; } .modal-btn { margin: 1; }"
+    
+    def compose(self):
+        with Vertical(id="look-dialog"):
+            yield Label("🛏️ SLEEP CHECK", classes="look-title")
+            yield Label("Choose to fall asleep?")
+            yield Label("[dim]Rolls a d20 to determine how you sleep.[/dim]")
             with Horizontal(classes="dialog-buttons"):
                 yield Button("Look", variant="warning", id="btn-confirm", classes="modal-btn")
                 yield Button("Cancel", variant="error", id="btn-cancel", classes="modal-btn")
@@ -335,6 +369,8 @@ class DNDGameApp(App):
             self.push_screen(TravelModal(target), on_modal_confirm)
         elif action == "look":
             self.push_screen(LookModal(), on_modal_confirm)
+        elif action == "sleep":
+            self.push_screen(SleepModal(), on_modal_confirm)
         else:
             on_modal_confirm(True)
 
@@ -362,6 +398,9 @@ class DNDGameApp(App):
         
         self.update_story_display()
 
+        if getattr(self.engine, 'is_game_over', False) or self.engine.player.health <= 0:
+            self.push_screen(GameOverScreen(), self.handle_game_over)
+
     def trigger_d20_animation(self, final_value: int) -> None:
         container = self.query_one("#dice-area")
         
@@ -379,6 +418,16 @@ class DNDGameApp(App):
     def action_show_guide(self) -> None:
         if not isinstance(self.screen, AssistantScreen):
             self.push_screen(AssistantScreen())
+
+    def handle_game_over(self, choice: str) -> None:
+        if choice == "quit":
+            self.exit()
+        elif choice == "restart":
+
+            chat_panel = self.query_one("#chat-panel")
+            chat_panel.update("A new soul enters the realm. What is your name?")
+
+            self.push_screen(CharacterCreatorScreen(), self.on_character_created)
 
 class CharacterCreatorScreen(Screen):
     CSS = """
