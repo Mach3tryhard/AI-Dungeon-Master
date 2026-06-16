@@ -24,15 +24,16 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install pyinstaller textual
+
         if (Test-Path -Path 'requirements.txt') { pip install -r requirements.txt }
       shell: pwsh
 
     - name: Build EXE cu PyInstaller
       run: |
-        pyinstaller --onefile --paths . UI/tui.py
+        pyinstaller --onefile --paths . --add-data "UI\style.tcss;UI" UI/tui.py
       shell: pwsh
 
-    - name: Împachetează Fișierele
+    - name: Împachetează Executabilul și Codul Sursă (pentru AI)
       run: |
         New-Item -ItemType Directory -Path "DND_Release"
         
@@ -45,7 +46,7 @@ jobs:
         Compress-Archive -Path "DND_Release\*" -DestinationPath "DND_Game.zip"
       shell: pwsh
 
-    - name: Upload to GitHub Release
+    - name: Upload ZIP to GitHub Release
       uses: softprops/action-gh-release@v2
       with:
         files: DND_Game.zip
