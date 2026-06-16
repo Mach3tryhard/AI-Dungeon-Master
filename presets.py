@@ -3,7 +3,7 @@ CLASS_STATS = {
     "Bard":      {"STR": 8,  "DEX": 14, "CON": 13, "INT": 12, "WIS": 10, "CHA": 15, "HP": 10},
     "Cleric":    {"STR": 14, "DEX": 10, "CON": 13, "INT": 8,  "WIS": 15, "CHA": 12, "HP": 11},
     "Druid":     {"STR": 10, "DEX": 12, "CON": 14, "INT": 13, "WIS": 15, "CHA": 8,  "HP": 10},
-    "Fighter":   {"STR": 15, "DEX": 13, "CON": 14, "INT": 10, "WIS": 12, "CHA": 8,  "Health": 12},
+    "Fighter":   {"STR": 15, "DEX": 13, "CON": 14, "INT": 10, "WIS": 12, "CHA": 8,  "HP": 12},
     "Monk":      {"STR": 10, "DEX": 15, "CON": 13, "INT": 10, "WIS": 14, "CHA": 8,  "HP": 10},
     "Paladin":   {"STR": 15, "DEX": 10, "CON": 13, "INT": 8,  "WIS": 12, "CHA": 14, "HP": 12},
     "Ranger":    {"STR": 10, "DEX": 15, "CON": 14, "INT": 12, "WIS": 13, "CHA": 8,  "HP": 12},
