@@ -17,9 +17,10 @@ from engine import GameEngine
 from ai_dm import AIDungeonMaster
 import presets
 
-from map_screen import MapScreen
-from sheet import CharacterSheetScreen
-from assistant_screen import AssistantScreen
+from UI.map_screen import MapScreen
+from UI.sheet import CharacterSheetScreen
+from UI.assistant_screen import AssistantScreen
+
 class AttackModal(ModalScreen[bool]):
     CSS = "AttackModal { align: center middle; background: $background 50%; } #attack-dialog { width: 45; height: auto; padding: 1; border: thick $error; background: $surface; } .attack-title { text-style: bold; color: $error; margin-bottom: 1; } .dialog-buttons { height: auto; align: center middle; } .modal-btn { margin: 1; }"
     
