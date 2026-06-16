@@ -27,7 +27,7 @@ The easiest way to play the game is by downloading the latest automated release.
 2. Download the latest `DND_Game.zip` archive.
 3. Extract the folder to your Desktop or Documents (Do not run it directly from inside the ZIP).
 4. Ensure you have [Ollama](https://ollama.com/) installed and running on your system with the `llama3` model pulled (`ollama run llama3`).
-5. Double-click `tui.exe` to start the adventure!
+5. Double-click `DND_GAME.exe` to start the adventure!
 
 ## Developer Setup (Running from Source)
 

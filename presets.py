@@ -11,7 +11,6 @@ CLASS_STATS = {
     "Sorcerer":  {"STR": 8,  "DEX": 13, "CON": 14, "INT": 10, "WIS": 12, "CHA": 15, "HP": 8},
     "Warlock":   {"STR": 8,  "DEX": 13, "CON": 14, "INT": 12, "WIS": 10, "CHA": 15, "HP": 10},
     "Wizard":    {"STR": 8,  "DEX": 13, "CON": 14, "INT": 15, "WIS": 12, "CHA": 10, "HP": 8},
-    "Debug":    {"STR": 8,  "DEX": 13, "CON": 14, "INT": 15, "WIS": 12, "CHA": 10, "HP": 1},
 }
 
 RACE_BONUSES = {
