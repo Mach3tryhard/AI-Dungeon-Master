@@ -1,18 +1,14 @@
-name: Build and Release EXE
+name: Build and Upload Release
 
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Descriereeee!!'
-        required: true
-        default: 'v1.0.0'
+  release:
+    types: [published]
 
 permissions:
   contents: write
 
 jobs:
-  build-and-release:
+  build-and-upload:
     runs-on: windows-latest
 
     steps:
@@ -28,36 +24,30 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install pyinstaller textual
-        
         if (Test-Path -Path 'requirements.txt') { pip install -r requirements.txt }
       shell: pwsh
 
     - name: Build EXE cu PyInstaller
       run: |
-        
         pyinstaller --onefile --paths . UI/tui.py
       shell: pwsh
 
-    - name: Împachetează EXE-ul alături de Codul Sursă
+    - name: Împachetează Fișierele
       run: |
-        
         New-Item -ItemType Directory -Path "DND_Release"
         
         Copy-Item -Path "dist\tui.exe" -Destination "DND_Release\"
         
         Copy-Item -Path "UI" -Destination "DND_Release\UI" -Recurse
         if (Test-Path -Path 'tests') { Copy-Item -Path "tests" -Destination "DND_Release\tests" -Recurse }
-        
         Copy-Item -Path "*.py" -Destination "DND_Release\"
         
-        Compress-Archive -Path "DND_Release\*" -DestinationPath "DND_AI_Game_${{ github.event.inputs.version }}.zip"
+        Compress-Archive -Path "DND_Release\*" -DestinationPath "DND_Game.zip"
       shell: pwsh
 
-    - name: Creează GitHub Release automat
+    - name: Upload to GitHub Release
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: ${{ github.event.inputs.version }}
-        name: Release ${{ github.event.inputs.version }}
-        files: DND_AI_Game_${{ github.event.inputs.version }}.zip
+        files: DND_Game.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
