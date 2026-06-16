@@ -2,6 +2,46 @@
 
 A highly immersive, text-based Dungeons & Dragons experience built entirely in Python. This project bridges the gap between traditional deterministic game engines and modern Generative AI, featuring a fully functional Terminal User Interface (TUI) and an AI Dungeon Master that dynamically narrates your actions, controls NPCs, and acts as a code-aware player guide.
 
+## Descriere Arhitectura
+
+### Diagrama UML
+```mermaid
+graph TD
+    %% Componentele UI
+    subgraph View/Controller [Interfața Utilizator - tui.py]
+        UI[DNDGameApp]
+        Modals[Screens & Modals]
+        Animation[TumblingD20]
+    end
+
+    %% Nucleul Jocului
+    subgraph Model [Logica de Joc - engine.py]
+        Engine[GameEngine]
+        Entities[Entity, Map, Inventory]
+        Presets[presets.py]
+    end
+
+    %% Servicii Externe
+    subgraph Services [Servicii Externe]
+        AIDM[ai_dm.py / PlayerGuideAssistant]
+        DB[DatabaseManager - SQLite]
+        Ollama((Ollama Local LLM))
+    end
+
+    %% Conexiuni
+    UI -- "1. Trimite Input (Action/Target)" --> Engine
+    UI -- "Actualizează / Gestionează" --> Modals
+    UI -- "Declanșează" --> Animation
+    Engine -- "Actualizează Stări (Flags)" --> UI
+    
+    Engine -- "2. Solicită Date/Inamici" --> DB
+    Engine -- "Încarcă Stats" --> Presets
+    Engine -- "Gestionează Instanțe" --> Entities
+    
+    UI -- "3. Solicită Narațiune/Ghid" --> AIDM
+    AIDM -- "4. Request/Response" --> Ollama
+```
+
 ## Core Features
 
 * **Deterministic Game Engine:** Under the hood, a strict Python engine handles stats, HP tracking, inventory, map coordinates, and d20 dice rolls to ensure fair and mathematically sound gameplay.
