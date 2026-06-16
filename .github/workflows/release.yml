@@ -30,7 +30,7 @@ jobs:
 
     - name: Build EXE cu PyInstaller
       run: |
-        pyinstaller --onefile --paths . --add-data "UI\style.tcss;UI" UI/tui.py
+        pyinstaller --onefile --paths . --add-data "UI\style.tcss;." UI/tui.py
       shell: pwsh
 
     - name: Împachetează Executabilul și Codul Sursă (pentru AI)
