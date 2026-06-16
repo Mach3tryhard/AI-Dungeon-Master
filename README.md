@@ -2,10 +2,32 @@
 
 A highly immersive, text-based Dungeons & Dragons experience built entirely in Python. This project bridges the gap between traditional deterministic game engines and modern Generative AI, featuring a fully functional Terminal User Interface (TUI) and an AI Dungeon Master that dynamically narrates your actions, controls NPCs, and acts as a code-aware player guide.
 
-## Cerinte si rezolvarile lor
+## Procesul de dezvoltare
+
+### Specificații
+
+1. Viziunea Proiectului
+Un joc de rol (RPG) text-based în terminal, care îmbină logica matematică a unui motor D&D (HP, zaruri, statistici) cu narațiunea generată dinamic de un LLM rulat local.
+
+2. Cerințe Funcționale
+* **Character Creator:** Interfață pentru definirea personajului (Nume, Clasă, Rasă, Background) și alocarea automată a atributelor (HP, STR, etc.).
+* **Turn-Based Combat:** Sistem automatizat de atac/apărare, care calculează determinist rezultatul (zaruri, modificatori) și include contra-atacul inamicului în aceeași rundă.
+* **Dialog Dinamic (AI):** Sistem de interacțiune cu NPC-urile, unde AI-ul generează replici conștiente de contextul jocului (inamici în viață, quest-uri).
+* **Player Guide "Code-Aware":** Asistent tehnic in-game capabil să citească fișierele `.py` pentru a ghida jucătorul bazat strict pe mecanicile reale implementate.
+* **TUI (Terminal User Interface):** Interfață vizuală interactivă (Textual) cu log-uri de poveste, hărți, inventar și ferestre modale pentru confirmări sau "Game Over".
+
+3. Cerințe Non-Funcționale
+* **Execuție Locală:** Integrare cu Ollama (ex: Llama 3) pentru confidențialitate totală și costuri zero.
+* **Arhitectură Decuplată:** Separare clară între UI (`tui.py`), logică (`engine.py`) și serviciile AI (`ai_dm.py`).
+* **CI/CD & Portabilitate:** Workflow GitHub Actions pentru testare automată (`pytest`) și compilare într-un singur fișier executabil (`.exe`) folosind PyInstaller.
+* **Procesare Asincronă:** Apelurile către modelul AI nu trebuie să blocheze firul principal de execuție al interfeței grafice.
 
 ### Backlog-uri
     - Au fost create folosind JIRA, creand story-uri si task-uri carora le putem da track 
+<img width="1913" height="1015" alt="Screenshot 2026-06-17 010035" src="https://github.com/user-attachments/assets/511e4984-79bd-4f42-9cb0-dad2ba710226" />
+<img width="1567" height="897" alt="Screenshot 2026-06-17 010113" src="https://github.com/user-attachments/assets/bf546bb5-edbb-483e-884c-e8e01a6208bb" />
+<img width="1913" height="1005" alt="Screenshot 2026-06-17 010026" src="https://github.com/user-attachments/assets/9b8258cf-61c1-431e-a919-2912513a4126" />
+
 
 ### Source control cu git
     - Pentru a realiza proiectul, ambii studenti au creat noi branch-uri si dat merge acestora 
