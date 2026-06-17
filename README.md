@@ -43,94 +43,169 @@ Au fost create folosind JIRA, creand story-uri si task-uri carora le putem da tr
 ### Diagrama de Arhitectură a Componentelor
 ```mermaid
 graph TD
-subgraph UI [View - Interfața Utilizator]
-TUI[tui.py / Textual App]
-Modals[Ferestre Modale]
-end
+    subgraph Viewer
+        TUI["tui.py / Textual App"]
+        Modals["Ferestre Modale"]
+    end
 
-subgraph Services [Presenter & Servicii AI]
-    AIDM[ai_dm.py / Prompt Builder]
-    Ollama((LLM Local: Ollama / Llama 3))
-end
+    subgraph Controller
+        Engine["engine.py / GameEngine"]
+        AIDM["ai_dm.py / Prompt Builder"]
+    end
 
-subgraph Core [Model - Logica de Business]
-    Engine[engine.py / GameEngine]
-    Entities[Clase: Entity, Map, DNDClass]
-    DB[(SQLite Database)]
-end
+    subgraph Model
+        Classes["Clase: Entity, Map, DNDClass"]
+        DB[("SQLite Database")]
+        LLM(("LLM Local: Ollama / Llama 3"))
+    end
 
-TUI -- "Trimite Acțiune" --> Engine
-Engine -- "Actualizează Stare" --> Entities
-Entities -- "Extrage Date" --> DB
-
-Engine -- "Rezultat Matematic" --> TUI
-TUI -- "Rezultat Brut" --> AIDM
-AIDM -- "Prompt" --> Ollama
-Ollama -- "Răspuns Narativ" --> AIDM
-AIDM -- "Text Formatat" --> TUI
+    Modals --> TUI
+    
+    TUI --> Engine
+    Engine --> TUI
+    
+    Engine --> AIDM
+    AIDM --> Engine
+    
+    Engine --> Classes
+    Engine --> DB
+    
+    AIDM --> LLM
 ```
 
 ### Diagrama de Clase UML
 ```mermaid
 classDiagram
-class GameEngine {
-+list story_log
-+bool in_combat
-+bool is_game_over
-+Entity player
-+MapClass map_class
-+process_action(intent, player_text) tuple
-+action_attack(target, luck_roll) str
-+tick() void
-}
+    class DNDGameApp {
+        +engine: GameEngine
+        +ai_dm: AIDungeonMaster
+        +game_loop()
+        +handle_player_action(text)
+    }
 
-class Entity {
-    +str name
-    +tuple position
-    +int health
-    +dict stats
-    +take_damage(amount, type) void
-}
+    class Screens {
+        <<UI Views>>
+        MapScreen
+        CharacterSheetScreen
+        AssistantScreen
+    }
 
-class DNDClass {
-    +str name
-    +str primary_stat
-    +int health
-}
+    class AIDungeonMaster {
+        +model: str
+        +parse_intent(player_text) dict
+        +narrate_outcome(player_text, engine_result) str
+    }
 
-class Inventory {
-    +int gold
-    +list items
-}
+    class PlayerGuideAssistant {
+        +engine_context: str
+        +ask_question(question) str
+    }
 
-GameEngine "1" *-- "1..*" Entity : gestionează
-Entity "1" *-- "1" DNDClass : are o
-Entity "1" *-- "1" Inventory : deține
+    class GameEngine {
+        +player: Entity
+        +map_class: MapClass
+        +db: DatabaseManager
+        +tick()
+        +process_action(intent, text) tuple
+        +load_local_entities()
+    }
+
+    class MapClass {
+        +base_map: list
+        +full_map: list
+        +mapData(enemies, npcs, player)
+    }
+
+    class Entity {
+        +name: str
+        +health: int
+        +dnd_class: DNDClass
+        +inventory: Inventory
+        +ac: int
+        +take_damage(damage, type)
+        +get_modifier(stat) int
+    }
+
+    class DNDClass {
+        +name: str
+        +primary_stat: str
+        +spells: list
+        +weapon_proficiencies: list
+    }
+
+    class Inventory {
+        +items: list
+        +gold: int
+        +add_item(item)
+    }
+
+    class DatabaseManager {
+        +db_name: str
+        +setup_tables()
+        +get_map() dict
+        +get_random_enemy() dict
+        +get_dnd_class(name) dict
+    }
+
+    DNDGameApp *-- GameEngine : Runs
+    DNDGameApp *-- AIDungeonMaster : Prompts
+    DNDGameApp ..> Screens : Renders
+
+    Screens ..> PlayerGuideAssistant : AssistantScreen uses
+
+    GameEngine *-- DatabaseManager : Fetches data
+    GameEngine *-- MapClass : Manages grid
+    GameEngine o-- Entity : Tracks Player, NPCs, Enemies
+
+    Entity *-- DNDClass : Defines stats/skills
+    Entity *-- Inventory : Holds weapons/gold
 ```
 
-### Workflow Combat (Sequence Diagram)
+### Workflow Action (Sequence Diagram)
 ```mermaid
 sequenceDiagram
-actor Jucător
-participant TUI as tui.py (View)
-participant Engine as engine.py (Model)
-participant AIDM as ai_dm.py (AI)
+    actor Player as Jucător
+    participant TUI as tui.py (View)
+    participant AI as ai_dm.py (AI DM)
+    participant Engine as engine.py (Model)
+    participant LLM as Ollama (Local LLM)
 
-Jucător->>TUI: Confirmă Atac din Modal
-TUI->>Engine: process_action(attack, goblin)
-activate Engine
-Engine->>Engine: Zar d20 + calcul damage jucător
-Engine->>Engine: Calcul contra-atac inamic
-Engine-->>TUI: Returnează string matematic
-deactivate Engine
+    Note over Player, LLM: Phase 1: Intent Parsing
+    Player->>TUI: Types action (e.g., "hit goblin")
+    activate TUI
+    TUI->>AI: parse_intent("hit goblin")
+    activate AI
+    AI->>LLM: Prompt: "Extract user intent to strict JSON"
+    activate LLM
+    LLM-->>AI: Returns {"action": "attack", "target": "goblin"}
+    deactivate LLM
+    AI-->>TUI: Returns Intent Dictionary
+    deactivate AI
 
-TUI->>AIDM: narrate_outcome(string_matematic)
-activate AIDM
-AIDM->>AIDM: Construiește Prompt System
-AIDM-->>TUI: Returnează povestea generată
-deactivate AIDM
+    TUI->>Player: Show Confirmation Modal (AttackModal)
+    Player->>TUI: Clicks "Strike"
 
-TUI->>TUI: update_story_display()
+    Note over TUI, Engine: Phase 2: Mechanical Execution
+    TUI->>Engine: process_action(intent)
+    activate Engine
+    Engine->>Engine: Roll d20 + apply modifiers
+    Engine->>Engine: Apply damage to Entity
+    Engine-->>TUI: Returns (luck_roll, mathematical_result)
+    deactivate Engine
+
+    Note over TUI, LLM: Phase 3: Story Narration
+    TUI->>AI: narrate_outcome(player_text, mathematical_result)
+    activate AI
+    AI->>LLM: Prompt: "Narrate outcome matching these exact numbers"
+    activate LLM
+    LLM-->>AI: Returns descriptive paragraph
+    deactivate LLM
+    AI-->>TUI: Returns final story string
+    deactivate AI
+
+    TUI->>TUI: update_story_display()
+    TUI-->>Player: Display updated chat log
+    deactivate TUI
 ```
 
 ## Source control cu git
