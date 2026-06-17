@@ -148,7 +148,7 @@ Arhitectura aplică verificări statice ușoare. Se utilizează *Type Hinting* s
 ## Raportare bug
 O eroare logică legată de mecanica jocului a fost depistată și documentată oficial pe GitHub. Issue-ul conține descrierea problemei.
 Soluția a fost implementată pe un branch separat și izolată de restul codului. Ulterior, corecția a fost revizuită și integrată în ramura principală.
-[Issue]([https://github.com](https://github.com/Mach3tryhard/AI-Dungeon-Master/issues/30))
+[Link](https://github.com/Mach3tryhard/AI-Dungeon-Master/issues/30)
 
 ## Design Patterns
 Proiectul utilizeaza Design Pattern-ul Model - View - Controller.
